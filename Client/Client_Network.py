@@ -7,7 +7,7 @@ chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 file_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host = socket.gethostname()
 Chat_PORT = 3500
-Server_IP = ""
+Server_IP = socket.gethostname()
 File_PORT = 3600
 Pic_PORT = 3700
 send_2_server = ""
@@ -168,3 +168,15 @@ def send_pic_procedure(user_num, rcv_num, file_path):
     data_str = json.dumps(data)
     chat_socket.send(data_str.encode('utf-8'))
 
+
+def recv():
+    while True:
+        data = chat_socket.recv(rcv_size)
+        data = data.decode('utf-8')
+        json.loads()
+
+connect_server()
+rcv_buffer = chat_socket.recv(rcv_size)
+rcv_buffer = rcv_buffer.decode('utf-8')
+data = json.loads(rcv_buffer)
+print(type(data), data)
