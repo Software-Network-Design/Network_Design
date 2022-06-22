@@ -89,7 +89,8 @@ Server-->Client
 (new port)
 Client-->Client
 (发送用户(用户Num);接受用户(用户Num);类型(6);消息内容(开始发送))
-文件传输
+file_name|file_size
+文件传输(每次发送固定大小)
 (发送用户(用户Num);接受用户(用户Num);类型(6);消息内容(发送结束))
 ```
 
@@ -129,12 +130,14 @@ Server-->Client
 (new port)
 Client-->Server
 (发送用户(用户Num);接受用户();类型(12);消息内容(开始发送))
-文件传输
+file_name|file_size
+文件传输(每次发送固定大小)
 (发送用户(用户Num);接受用户();类型(12);消息内容(发送结束))
 
 Server-->Client
 (发送用户();接受用户(用户Num);类型(12);消息内容(开始发送))
-文件传输
+file_name|file_size
+文件传输(每次发送固定大小)
 (发送用户();接受用户(用户Num);类型(12);消息内容(发送结束))
 ```
 
@@ -152,7 +155,7 @@ Server-->Client
 
 ##### E-R图
 
-![聊天软件数据库.drawio](.\media\聊天软件数据库.drawio.png)
+![聊天软件数据库.drawio](./media/聊天软件数据库.drawio.png)
 
 User
 
