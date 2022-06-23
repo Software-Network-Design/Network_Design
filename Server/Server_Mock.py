@@ -4,7 +4,7 @@ import threading
 
 chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 file_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-host = socket.gethostname()
+host = '0.0.0.0'
 Chat_PORT = 3500
 Server_IP = ""
 File_PORT = 3600
@@ -20,6 +20,6 @@ chat_socket.listen(Max_connection)
 
 client_skt, client_addr = chat_socket.accept()
 
-data = '{"a": 1, "b": 2}'
-client_skt.send(data.encode('utf-8'))
+data = {"a": '你好', "b": 2}
+client_skt.send(json.dumps(data).encode('utf-8'))
 

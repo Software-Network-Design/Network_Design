@@ -7,7 +7,7 @@ chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 file_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host = socket.gethostname()
 Chat_PORT = 3500
-Server_IP = socket.gethostname()
+Server_IP = '127.0.0.1'
 File_PORT = 3600
 Pic_PORT = 3700
 send_2_server = ""
@@ -179,4 +179,4 @@ connect_server()
 rcv_buffer = chat_socket.recv(rcv_size)
 rcv_buffer = rcv_buffer.decode('utf-8')
 data = json.loads(rcv_buffer)
-print(type(data), data)
+print(type(data), data['a'])
