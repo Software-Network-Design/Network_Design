@@ -2,6 +2,7 @@ import os.path
 import socket
 import json
 import struct
+from time import sleep
 
 chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 file_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -15,6 +16,7 @@ rcv_size = 1024
 
 
 def connect_server():
+    global chat_socket
     chat_socket.connect((Server_IP, Chat_PORT))
 
 
@@ -175,7 +177,8 @@ def recv():
         data = data.decode('utf-8')
         json.loads()
 
-connect_server()
+#connect_server()
+chat_socket.connect((Server_IP, Chat_PORT))
 message = {
     'send': 'u12',
     'receive': 'server',
@@ -191,4 +194,6 @@ rcv_buffer = chat_socket.recv(rcv_size)
 rcv_buffer = rcv_buffer.decode('utf-8')
 data = json.loads(rcv_buffer)
 print(data)
+sleep(5)
 chat_socket.close()
+print('终止了')

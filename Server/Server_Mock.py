@@ -16,7 +16,7 @@ db = pymysql.connect(host='nas.boeing773er.site', port=49156, user='root', passw
 cursor = db.cursor()
 # 用于存放客户端发送的信息的队列
 que = queue.Queue()                
-# 用于存放在线用户的信息  [conn, user, addr]             
+# 用于存放在线用户的信息  [conn, user_id, user_name, addr]             
 users = []                 
 # 创建锁, 防止多个线程写入数据的顺序打乱                     
 lock = threading.Lock()                         
@@ -35,6 +35,8 @@ class chat_server(threading.Thread):
     def connect(self, conn, addr):
         request = conn.recv(RCV_SIZE)
         request = json.loads(request.decode('utf-8'))
+        # 注册请求
+        # 
         # 登录请求
         if request['type'] == 1:
             message = {
@@ -113,19 +115,25 @@ class chat_server(threading.Thread):
                 while True:
                     data = conn.recv(1024)
                     data = data.decode()
+                    if not data:
+                        break
                     # 处理之后接收到的各类型消息
-                conn.close()
             # 断开连接
             except:
-                self.online = 0
-                print(user_id+'断开连接！')
+                pass
+            finally:
                 conn.close()
+                self.online = 0
+                self.delUser(conn)
+                print(user_id+'断开连接！')
+
         # 登陆失败
         else :
             message = json.dumps(message, ensure_ascii=False)
             conn.send(message.encode('utf-8')) 
 
     # addr ——— (host,port)
+    # 将聊天消息保存到队列
     def save_data(self, addr, message):
         lock.acquire()
         try:
@@ -133,6 +141,7 @@ class chat_server(threading.Thread):
         finally:
             lock.release()
 
+    # 将队列中消息转发
     def send_data(self):
         while True:
             if not que.empty():
@@ -147,6 +156,15 @@ class chat_server(threading.Thread):
                             user[0].send(message.encode('utf-8')) 
                             print('success!')
 
+    # 用户离线后将其从users中删除
+    def delUser(self, conn):
+        a = 0
+        for user in users:
+            if user[0] == conn:
+                users.pop(a)
+                break
+            a = a + 1
+    
     def run(self):
         self.socket.bind((HOST, Chat_PORT))
         self.socket.listen(Max)
