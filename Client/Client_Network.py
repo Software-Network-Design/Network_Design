@@ -22,14 +22,14 @@ def connect_file_rcv(rcv_ip):
     file_socket.connect((rcv_ip, File_PORT))
 
 
-def login_procedure(user_num, pwd):
+def login_procedure(user_id, user_pwd):
     temp_dict = dict()
-    temp_dict['send'] = user_num
+    temp_dict['send'] = user_id
     temp_dict['receive'] = send_2_server
     temp_dict['type'] = 1
-    temp_dict['info'] = user_num + ';' + pwd
+    temp_dict['info'] = {'user_id': user_id, 'user_pwd': user_pwd}
     data = [temp_dict]
-    data_str = json.dumps(data)
+    data_str = json.dumps(data, ensure_ascii=False)
     # print(type(json.dumps(data)), json.dumps(data))
     chat_socket.send(data_str.encode('utf-8'))
 
@@ -176,7 +176,19 @@ def recv():
         json.loads()
 
 connect_server()
+message = {
+    'send': 'u12',
+    'receive': 'server',
+    'type': 1,
+    'info': {
+        'user_id': 'u123',
+        'user_pwd': '123'
+    }
+}
+message = json.dumps(message, ensure_ascii=False)
+chat_socket.send(message.encode('utf-8'))
 rcv_buffer = chat_socket.recv(rcv_size)
 rcv_buffer = rcv_buffer.decode('utf-8')
 data = json.loads(rcv_buffer)
-print(type(data), data['a'])
+print(data)
+chat_socket.close()
