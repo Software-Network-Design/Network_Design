@@ -1,12 +1,6 @@
 {
-    "send": "server",
-    "receive": {
-        "user_id": "u123",
-        "user_name": "zyx"
-    },
-    "type": 8,
-    "info": {
-        "user_id": "u234",
-        "user_name": "xyz"
-    }
+    "send": "u123",
+    "receive": "u234",
+    "type": 3,
+    "info": "私聊噢"
 }

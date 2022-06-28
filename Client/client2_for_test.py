@@ -190,10 +190,24 @@ message = {
 }
 message = json.dumps(message, ensure_ascii=False)
 chat_socket.send(message.encode('utf-8'))
-rcv_buffer = chat_socket.recv(rcv_size)
-rcv_buffer = rcv_buffer.decode('utf-8')
-data = json.loads(rcv_buffer)
-print(data)
+message = {
+    'send': 'u123',
+    'receive': '',
+    'type': 13,
+    'info': {
+        'user_name': 'xxxx',
+        'user_pwd': '123321123'
+    }
+}
+message = json.dumps(message, ensure_ascii=False)
+chat_socket.send(message.encode('utf-8'))
+print(message)
 sleep(10)
 chat_socket.close()
 print('终止了')
+for i in range(4):
+    rcv_buffer = chat_socket.recv(rcv_size)
+    rcv_buffer = rcv_buffer.decode('utf-8')
+    data = json.loads(rcv_buffer)
+    print(data)
+

@@ -1,4 +1,17 @@
-//登陆响应返回示例
+// ""表示任意
+
+//1：登录请求
+{
+    // 用户id
+    "send": "u123",
+    "receive": "",
+    "type": 1,
+    "info": {
+        "user_id": "u123",
+        "user_pwd": "123"
+    }
+}
+//2：登陆响应返回示例
 {
     "send": "server",
     "receive": "u123",
@@ -26,18 +39,61 @@
         }
     }
 }
-// 好友上线提醒
+//3：私聊消息
+{
+    "send": "u123",
+    "receive": "u234",
+    "type": 3,
+    "info": "私聊噢"
+}
+//4：群发消息
+{
+    "send": "u123",
+    "receive": "",
+    "type": 4,
+    "info": "群聊噢"
+}
+//5：注销消息
+//每个在线的用户都会收到注销账户发出的注销消息
+{
+    //注销账户id
+    "send": "u123",
+    //接收者id
+    "receive": "u234",
+    "type": 5,
+    "info": "logout"
+}
+//8：有人上线提醒
 {
     "send": "server",
-    // 被提醒人
-    "receive": {
-        "user_id": "u123",
-        "user_name": "zyx"
-    },
+    //被提醒人id
+    "receive": "u234",
     "type": 8,
-    // 好友id及name
     "info": {
-        "user_id": "u234",
-        "user_name": "xyz"
+        //上线人id
+        "user_id": "u123",
+        //上线人用户名
+        "user_name": "zyx",
+        //上线人与被提醒人关系
+        "type": "friend" // 或"stranger"
     }
+}
+//13：注册请求
+{
+    "send": "",
+    "receive": "",
+    "type": 13,
+    "info": {
+        "user_name": "xxxx",
+        "user_pwd": "123321123"
+    }
+}
+//14：注册响应
+{
+    "send": "server",
+    // 若成功，返回用户id，即账号；失败返回""
+    "receive": "998551534",
+    "type": 14,
+    // 用户名
+    "info": "xxxx"
 }
