@@ -179,21 +179,3 @@ def recv():
 
 #connect_server()
 chat_socket.connect((Server_IP, Chat_PORT))
-message = {
-    'send': 'u123',
-    'receive': 'server',
-    'type': 1,
-    'info': {
-        'user_id': 'u123',
-        'user_pwd': '123'
-    }
-}
-message = json.dumps(message, ensure_ascii=False)
-chat_socket.send(message.encode('utf-8'))
-rcv_buffer = chat_socket.recv(rcv_size)
-rcv_buffer = rcv_buffer.decode('utf-8')
-data = json.loads(rcv_buffer)
-print(data)
-sleep(10)
-chat_socket.close()
-print('终止了')
