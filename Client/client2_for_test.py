@@ -180,11 +180,11 @@ def recv():
 #connect_server()
 chat_socket.connect((Server_IP, Chat_PORT))
 message = {
-    'send': 'u123',
+    'send': 'u234',
     'receive': 'server',
     'type': 1,
     'info': {
-        'user_id': 'u123',
+        'user_id': 'u234',
         'user_pwd': '123'
     }
 }
