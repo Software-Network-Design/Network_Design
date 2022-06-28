@@ -129,13 +129,10 @@ class chat_server(threading.Thread):
                         message = json.dumps(message, ensure_ascii=False)
                         print(message)
                         conn.send(message.encode('utf-8'))
-                    # 一对一消息
-                    elif request['type'] == 3:
-                        for online_friend in online_friends:
-                            self.save_data(online_friend[0], request)
-                                    
-                            
-
+                    # 注册消息
+                    # 其他需服务器转发的消息
+                    else:
+                        self.save_data(request)
 
         # 断开连接
         except:
@@ -146,12 +143,11 @@ class chat_server(threading.Thread):
             print('断开连接！')
          
 
-    # addr ——— (host,port)
     # 将聊天消息保存到队列
-    def save_data(self, addr, message):
+    def save_data(self, message):
         lock.acquire()
         try:
-            que.put((addr,message))
+            que.put(message)
         finally:
             lock.release()
 
@@ -159,14 +155,21 @@ class chat_server(threading.Thread):
     def send_data(self):
         while True:
             if not que.empty():
-                packet = que.get()
-                message = packet[1]
+                message = que.get()
+                #私聊消息
                 if message['type'] == 3:
                     for online_friend in online_friends:
                         if online_friend[1] == message['receive']:
                             message = json.dumps(message, ensure_ascii=False)
                             online_friend[0].send(message.encode('utf-8')) 
-                            print(online_friend[2],': ',message)
+                            print('私聊',online_friend[2],': ',message)
+                # 群发消息
+                elif message['type'] == 4:
+                    for online_user in users:
+                        message = json.dumps(message, ensure_ascii=False)
+                        online_user[0].send(message.encode('utf-8')) 
+                        print('群发',online_friend[2],': ',message)
+                
 
     # 用户离线后将其从users, onlne_friends中删除
     def delUser(self, conn):
