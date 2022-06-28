@@ -144,6 +144,98 @@ class chat_server(threading.Thread):
                         # 发送响应消息
                         message = json.dumps(message, ensure_ascii=False)
                         conn.send(message.encode('utf-8'))
+                    #好友请求消息
+                    elif request['type'] == 9:
+                        print('好友请求')
+                        friend_message = {
+                            'send': 'server',
+                            'receive': '',
+                            'type': 9,
+                            'info': ''        
+                        }
+                        friend_message['receive'] = request['info']
+                        friend_message['info'] = request['send']
+                        user_id = request['info']
+                        apply_id = request['send']
+                        sql = "select * from User where user_id = '%s'" %(apply_id)
+                        sql1 = "SELECT * FROM Chat_Program.User_Friends where user1_id = '%s'" %(user_id)
+                        sql2 = "SELECT * FROM Chat_Program.User_Friends where user2_id = '%s'" %(user_id)
+                        try:
+                            cursor.execute(sql)
+                            users = cursor.fetchone()
+                            cursor.execute(sql1)
+                            pairs1 = cursor.fetchone()
+                            cursor.execute(sql2)
+                            pairs2 = cursor.fetchone()
+                            exsist = 0
+                            already_friend = 0
+                            for user in users:
+                                if(user_id == user[0]):
+                                    exist = 1
+                            for pair in pairs1:
+                                if(apply_id == pair[1]):
+                                    already_friend = 1
+                                    break
+                            for pair in pairs2:
+                                if(apply_id == pair[0]):
+                                    already_friend = 1
+                                    break
+                            if(exist == 0):
+                                print("添加好友失败。不存在该用户。")
+                            elif(already_friend == 1):
+                                print("已经为好友。请勿重复添加。")
+                            else:
+                                self.save_data(friend_message)
+                        except:
+                            pass
+                    #回复好友请求消息
+                    elif request['type'] == 10:
+                        print('回复好友请求')
+                        friend_message = {
+                            'send': 'server',
+                            'receive': '',
+                            'type': 10,
+                            'info': {
+                                'agree':'',
+                                'user_id':''
+                            }        
+                        }
+                        friend_message['receive'] = request['send']
+                        friend_message['info']['agree'] = request['info']['agree']
+                        friend_message['info']['user_id'] = request['info']['agree']
+                        user_id = request['info']['user_id']
+                        friend_id = request['send']
+                        sql = "INSERT INTO `Chat_Program`.`User_Friends` (`user1_id`, `user2_id`) VALUES ('%s', '%s');"%(user_id)(friend_id)
+                        try:
+                            cursor.execute(sql)
+                            self.save_data(friend_message)
+                        except:
+                            pass
+                    elif request['type'] == 11:
+                        print('修改个人信息')
+                        correct_message = {
+                            'send': 'server',
+                            'receive': '',
+                            'type': 11,
+                            'info': {
+                                'PU':'',
+                                'NewInf':''
+                            }        
+                        }
+                        correct_message['receive'] = request['send']
+                        correct_message['PU'] = request['PU']
+                        correct_message['NewInf'] = request['NewInf']
+                        user_id = request['send']
+                        New_Inf = request['info']['NewInf']
+                        if(request['PU'] == 0):
+                            sql = "UPDATE `Chat_Program`.`User` SET `user_pwd` = '%s' WHERE (`user_id` = '%s');"%(New_Inf)(user_id)
+                        else:
+                            sql = "UPDATE `Chat_Program`.`User` SET `name` = '%s' WHERE (`user_id` = '%s');"%(New_Inf)(user_id)
+                        try:
+                            cursor.execute(sql)
+                            self.save_data(correct_message)
+                        except:
+                            pass
                     # 注册消息                     
                     elif request['type'] == 13:
                         print(type(request))
@@ -232,6 +324,9 @@ class chat_server(threading.Thread):
                             message = json.dumps(message, ensure_ascii=False)
                             online_user[0].send(message.encode('utf-8')) 
                             print('上线提醒',online_user[2],': ',message)
+                else:
+                    message = json.dumps(message, ensure_ascii=False)
+                    online_user[0].send(message.encode('utf-8')) 
                 
 
     # 用户离线后将其从users中删除
