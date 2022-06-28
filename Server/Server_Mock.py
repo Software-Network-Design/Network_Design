@@ -43,6 +43,7 @@ class chat_server(threading.Thread):
                 else:
                     if request['type'] == 1:
                         print('登陆消息')
+                        # 登录请求返回消息
                         message = {
                             'send': 'server',
                             'receive': '',
@@ -58,8 +59,11 @@ class chat_server(threading.Thread):
                                 }
                             }
                         }
+                        # 记录该用户所以已上线的好友id
+                        online_friends = []
                         user_id = request['info']['user_id']
                         user_pwd = request['info']['user_pwd']
+                        user_name = ''
                         message['receive'] = user_id
                         sql = "select * from User where user_id = '%s'" %(user_id)
                         # print(sql)
@@ -87,6 +91,7 @@ class chat_server(threading.Thread):
                                         strangers_num += 1
                                     # 是好友
                                     else:
+                                        online_friends.append((online_user[1],online_user[2]))
                                         message['info']['friends']['friend'+str(friends_num)]={
                                             'user_id': online_user[1],
                                             'user_name': online_user[2]
@@ -95,6 +100,25 @@ class chat_server(threading.Thread):
                                 # 记录好友、陌生人数量    
                                 message['info']['friends']['friends_num'] = friends_num
                                 message['info']['friends']['strangers_num'] = strangers_num
+                                #好友上线消息
+                                upline_message = {
+                                    'send': 'server',
+                                    'receive': {
+                                        'user_id': '',
+                                        'user_name': ''
+                                    },
+                                    'type': 8,
+                                    'info': {
+                                        'user_id': user_id,
+                                        'user_name': user_name
+                                    }
+                                }
+                                for online_friend in online_friends:
+                                    upline_message['receive']['user_id'] = online_friend[0]
+                                    upline_message['receive']['user_name'] = online_friend[1]
+                                    print(upline_message)
+                                    upline_message = json.dumps(upline_message, ensure_ascii=False)
+                                    conn.send(upline_message.encode('utf-8'))
                                 # 将该用户加入在线用户列表
                                 users.append((conn, user_id, user_name, addr)) 
                             # 密码错误
@@ -107,6 +131,10 @@ class chat_server(threading.Thread):
                         message = json.dumps(message, ensure_ascii=False)
                         print(message)
                         conn.send(message.encode('utf-8'))
+                        
+                            
+
+
         # 断开连接
         except:
             pass
