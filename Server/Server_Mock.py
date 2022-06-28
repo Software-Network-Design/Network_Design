@@ -17,13 +17,15 @@ cursor = db.cursor()
 # 用于存放客户端发送的信息的队列
 que = queue.Queue()                
 # 用于存放在线用户的信息  [conn, user_id, user_name, addr]             
-users = []                 
+users = []         
+# 用于存放在线好友信息，内容同users
+online_friends = []        
 # 创建锁, 防止多个线程写入数据的顺序打乱                     
 lock = threading.Lock()                         
 
 class chat_server(threading.Thread):
     # 定义为全局变量
-    global que, users, lock
+    global que, users, lock, online_friends
     def __init__(self):
         threading.Thread.__init__(self)
         self.addr = (HOST, Chat_PORT)
@@ -41,6 +43,7 @@ class chat_server(threading.Thread):
                     break
                 # 处理之后接收到的各类型消息
                 else:
+                    # 登录消息
                     if request['type'] == 1:
                         print('登陆消息')
                         # 登录请求返回消息
@@ -60,7 +63,6 @@ class chat_server(threading.Thread):
                             }
                         }
                         # 记录该用户所以已上线的好友id
-                        online_friends = []
                         user_id = request['info']['user_id']
                         user_pwd = request['info']['user_pwd']
                         user_name = ''
@@ -103,10 +105,7 @@ class chat_server(threading.Thread):
                                 #好友上线消息
                                 upline_message = {
                                     'send': 'server',
-                                    'receive': {
-                                        'user_id': '',
-                                        'user_name': ''
-                                    },
+                                    'receive': '',
                                     'type': 8,
                                     'info': {
                                         'user_id': user_id,
@@ -114,8 +113,7 @@ class chat_server(threading.Thread):
                                     }
                                 }
                                 for online_friend in online_friends:
-                                    upline_message['receive']['user_id'] = online_friend[0]
-                                    upline_message['receive']['user_name'] = online_friend[1]
+                                    upline_message['receive'] = online_friend[0]
                                     print(upline_message)
                                     upline_message = json.dumps(upline_message, ensure_ascii=False)
                                     conn.send(upline_message.encode('utf-8'))
@@ -131,7 +129,11 @@ class chat_server(threading.Thread):
                         message = json.dumps(message, ensure_ascii=False)
                         print(message)
                         conn.send(message.encode('utf-8'))
-                        
+                    # 一对一消息
+                    elif request['type'] == 3:
+                        for online_friend in online_friends:
+                            self.save_data(online_friend[0], request)
+                                    
                             
 
 
@@ -158,22 +160,26 @@ class chat_server(threading.Thread):
         while True:
             if not que.empty():
                 packet = que.get()
-                print(packet)
                 message = packet[1]
-                print(message)
-                if message['type'] == 2:
-                    for user in users:
-                        if user[1] == message['receive']:
+                if message['type'] == 3:
+                    for online_friend in online_friends:
+                        if online_friend[1] == message['receive']:
                             message = json.dumps(message, ensure_ascii=False)
-                            user[0].send(message.encode('utf-8')) 
-                            print('success!')
+                            online_friend[0].send(message.encode('utf-8')) 
+                            print(online_friend[2],': ',message)
 
-    # 用户离线后将其从users中删除
+    # 用户离线后将其从users, onlne_friends中删除
     def delUser(self, conn):
         a = 0
         for user in users:
             if user[0] == conn:
                 users.pop(a)
+                break
+            a = a + 1
+        a = 0
+        for online_friend in online_friends:
+            if online_friend[0] == conn:
+                online_friend.pop(a)
                 break
             a = a + 1
     
@@ -185,6 +191,7 @@ class chat_server(threading.Thread):
         q.start()
         while True:
             conn, addr = self.socket.accept()
+            print(addr)
             t = threading.Thread(target=self.connect, args=(conn, addr))
             t.start()
         self.socket.close()
