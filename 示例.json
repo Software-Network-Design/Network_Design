@@ -1,0 +1,28 @@
+//登陆响应返回示例
+{
+    "send": "server",
+    "receive": "u123",
+    "type": 2,
+    "info": {
+        "success": "登陆成功",
+        "strangers": {
+            "strangers_num": 0
+        },
+        "friends": {
+            "friends_num": 2,
+            // 根据friends_num变化
+            "friend0": {
+                "user_id": "u234",
+                "user_name": "xyz"
+            },
+            "friend1":{
+                // ...
+            },
+            // 同上
+            "strangers_num": 1,
+            "stranger0": {
+                // ...
+            }
+        }
+    }
+}

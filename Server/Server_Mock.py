@@ -22,9 +22,8 @@ users = []
 lock = threading.Lock()                         
 
 class chat_server(threading.Thread):
+    # 定义为全局变量
     global que, users, lock
-    # 是否登陆成功
-    online = 0
     def __init__(self):
         threading.Thread.__init__(self)
         self.addr = (HOST, Chat_PORT)
@@ -35,13 +34,15 @@ class chat_server(threading.Thread):
     def connect(self, conn, addr):
         try:
             while True:
-                data = conn.recv(1024)
-                data = json.loads(data.decode('uf-8'))
-                if not data:
+                request = conn.recv(1024)
+                request = json.loads(request.decode('utf-8'))
+                print(request)
+                if not request:
                     break
                 # 处理之后接收到的各类型消息
                 else:
                     if request['type'] == 1:
+                        print('登陆消息')
                         message = {
                             'send': 'server',
                             'receive': '',
@@ -49,8 +50,11 @@ class chat_server(threading.Thread):
                             'info': {
                                 # sucess：无此用户、密码错误、登陆成功
                                 'success': '',
+                                'strangers': {
+                                    'strangers_num': 0
+                                },
                                 'friends': {
-
+                                    'friends_num': 0
                                 }
                             }
                         }
@@ -65,53 +69,51 @@ class chat_server(threading.Thread):
                             user_name = user[1]
                             # 登陆成功
                             if user[4] == user_pwd:
-                                self.online = 1
+                                print('登陆成功')
                                 message['info']['success'] = '登陆成功'
-                                sql2 = "select * from User_Friends where user1_id = '%s' or user2_id = '%s'" %(user_id, user_id)
-                                # print(sql2)
-                                try:
+                                # 遍历在线用户，好友加入friends，陌生人加入strangers
+                                friends_num = 0
+                                strangers_num = 0
+                                for online_user in users:
+                                    sql2 = "select * from User_Friends where (user1_id = '%s' and user2_id = '%s') or (user1_id = '%s' and user2_id = '%s')" %(user_id, online_user[1], online_user[1], user_id)
                                     cursor.execute(sql2)
-                                    user_friends = cursor.fetchall()
-                                    i = 0
-                                    for friend in user_friends:
-                                        # print(friend)
-                                        if(user_id != friend[0]):
-                                            message['info']['friends']['friend'+str(i)]={
-                                                'user_id': friend[0]
-                                            }
-                                        else:
-                                            message['info']['friends']['friend'+str(i)]={
-                                                'user_id': friend[1]
-                                            }
-                                        i = i + 1
-                                    message['info']['friends']['friends_num'] = i
-                                except:
-                                    message['info']['friends']['friends_num'] = 0
+                                    if_friends = cursor.fetchall()
+                                    # 是陌生人
+                                    if not if_friends:
+                                        message['info']['friends']['stranger'+str(strangers_num)]={
+                                            'user_id': online_user[1],
+                                            'user_name': online_user[2]
+                                        }
+                                        strangers_num += 1
+                                    # 是好友
+                                    else:
+                                        message['info']['friends']['friend'+str(friends_num)]={
+                                            'user_id': online_user[1],
+                                            'user_name': online_user[2]
+                                        }
+                                        friends_num += 1
+                                # 记录好友、陌生人数量    
+                                message['info']['friends']['friends_num'] = friends_num
+                                message['info']['friends']['strangers_num'] = strangers_num
+                                # 将该用户加入在线用户列表
+                                users.append((conn, user_id, user_name, addr)) 
                             # 密码错误
                             else:
                                 message['info']['success'] = '密码错误'
                         # 无此用户
                         except:
                             message['info']['success'] = '无此用户'
-                        # 登陆成功
-                        if self.online == 1:
-                            users.append((conn, user_id, user_name, addr))
-                            message = json.dumps(message, ensure_ascii=False)
-                            conn.send(message.encode('utf-8'))
-                        else :
-                            message = json.dumps(message, ensure_ascii=False)
-                            conn.send(message.encode('utf-8'))
+                        # 发送响应消息
+                        message = json.dumps(message, ensure_ascii=False)
+                        print(message)
+                        conn.send(message.encode('utf-8'))
         # 断开连接
         except:
             pass
         finally:
             conn.close()
-            self.online = 0
             self.delUser(conn)
-            print(user_id+'断开连接！')
-        request = conn.recv(RCV_SIZE)
-        request = json.loads(request.decode('utf-8'))
-
+            print('断开连接！')
          
 
     # addr ——— (host,port)
