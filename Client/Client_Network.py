@@ -21,7 +21,6 @@ def modify_server(server_ip):
 
 # 连接聊天服务器
 def connect_server():
-    global chat_socket
     chat_socket.connect((Server_IP, Chat_PORT))
 
 # 连接文件服务器
@@ -50,23 +49,26 @@ def login_procedure(user_id, user_pwd):
 
 # 发送私聊消息
 def send_dm(user_num, crv_num, chat_message):
-    temp_dict = dict()
+    temp_dict = {}
     temp_dict['send'] = user_num
     temp_dict['receive'] = crv_num
     temp_dict['type'] = 3
     temp_dict['info'] = chat_message
     data_str = json.dumps(temp_dict, ensure_ascii=False)
     chat_socket.send(data_str.encode('utf-8'))
+    print(chat_socket)
 
 # 发送广播消息
 def send_group(user_num, chat_message):
-    temp_dict = dict()
+    temp_dict = {}
     temp_dict['send'] = user_num
     temp_dict['receive'] = ''
     temp_dict['type'] = 4
     temp_dict['info'] = chat_message
     data_str = json.dumps(temp_dict, ensure_ascii=False)
     chat_socket.send(data_str.encode('utf-8'))
+    print(type(data_str))
+    print(data_str)
 
 '''
 def request_rcv_IP(user_num, rcv_num):
@@ -190,11 +192,13 @@ if __name__ == '__main__':
     login_procedure('u123', '123321')
     rcv_one()
     send_dm('u123', 'u234', '私聊给你的哟')
+    sleep(1)
     send_group('u123', '广播听到了吗')
     print('发送消息成功')
-    #friend_request('u123', 'u234')
+    sleep(1)
+    friend_request('u123', 'u234')
     print('发送好友请求')
+    sleep(1)
     send_self_info('u123', 0, '123321')
     rcv_one()
-    sleep(10)
     chat_socket.close()
