@@ -354,7 +354,7 @@ if __name__ == '__main__':
     cserver.start()
     while True:
         time.sleep(1)
-        if not cserver.isAlive():
+        if not cserver.is_alive():
             print("Chat connection lost...")
             sys.exit(0)
 

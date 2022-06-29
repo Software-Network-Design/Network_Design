@@ -17,7 +17,7 @@ PORT = ''
 user = ''
 listbox1 = ''  # 用于显示在线用户的列表框
 ii = 0  # 用于判断是开还是关闭列表框
-users = []  # 在线用户列表
+users = {}  # 在线用户列表
 chat = '【群发】'  # 聊天对象, 默认为群聊
 
 
@@ -75,6 +75,7 @@ labelIP = tkinter.Label(loginRoot,text=" IP地址:")
 labelIP.place(x=74, y=180, width=80,height=20)
 entryIP = tkinter.Entry(loginRoot, width=120, textvariable=IP1)
 entryIP.place(x=144, y=175, width=150,height=30)"""
+
 
 #登录按钮
 def login(*args):
@@ -395,12 +396,14 @@ def acc(): #同意好友请求
     sta = True
     cnt=1
     frRoot.destroy()
-    
+
+
 def turnDown(): #拒绝好友请求
     global sta,cnt
     sta = False
     cnt=1
     frRoot.destroy()
+
 
 def friendRequest(stranger):#来自名为stranger的人的好友请求
     global sta,frRoot,cnt
