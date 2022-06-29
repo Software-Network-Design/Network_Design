@@ -7,6 +7,7 @@ import time
 import pymysql
 import queue
 import random
+from time import sleep
 from server_config import *
 
 # message --- json格式信息 packet --- (addr,message)
@@ -54,13 +55,17 @@ class chat_server(threading.Thread):
         try:
             while True:
                 request = conn.recv(1024)
-                request = json.loads(request.decode('utf-8'))
+                print(type(request))
+                request = request.decode('utf-8')
+                print(type(request))
+                print(request)
+                request = json.loads(request)
+                print(type(request))
+                print(request)
                 if not request:
                     break
                 # 处理之后接收到的各类型消息
                 else:
-                    print(type(request))
-                    print(request)
                     # 登录消息
                     if request['type'] == 1:
                         print('登陆消息')
@@ -72,12 +77,14 @@ class chat_server(threading.Thread):
                             'info': {
                                 # sucess：无此用户、密码错误、登陆成功
                                 'success': '',
-                                'strangers': {
-                                    'strangers_num': 0
-                                },
-                                'friends': {
-                                    'friends_num': 0
-                                }
+                                'strangers': [],
+                                #{
+                                    #'strangers_num': 0
+                                #},
+                                'friends': []
+                                #{
+                                    #'friends_num': 0
+                                #}
                             }
                         }
                         user_id = request['info']['user_id']
@@ -92,9 +99,9 @@ class chat_server(threading.Thread):
                             user_name = user[1]
                             # 登陆成功
                             if user[2] == user_pwd:
-                                print('登陆成功')
+                                print('登录成功')
                                 print(1)
-                                message['info']['success'] = '登陆成功'
+                                message['info']['success'] = '登录成功'
                                 # 遍历在线用户，好友加入friends，陌生人加入strangers
                                 friends_num = 0
                                 strangers_num = 0
@@ -109,36 +116,46 @@ class chat_server(threading.Thread):
                                         'type': ''
                                     }
                                 }
-                                print(2)
                                 for online_user in users:
-                                    print(3)
                                     upline_message['receive'] = online_user[1]
                                     sql2 = "select * from User_Friends where (user1_id = '%s' and user2_id = '%s') or (user1_id = '%s' and user2_id = '%s')" %(user_id, online_user[1], online_user[1], user_id)
                                     cursor.execute(sql2)
                                     if_friends = cursor.fetchall()
-                                    print(4)
                                     # 是陌生人
                                     if not if_friends:
                                         upline_message['info']['type'] = 'stranger'
+                                        ''''
                                         message['info']['strangers']['stranger'+str(strangers_num)]={
                                             'user_id': online_user[1],
                                             'user_name': online_user[2]
                                         }
                                         strangers_num += 1
+                                        '''
+                                        stranger = {
+                                            'user_id': online_user[1],
+                                            'user_name': online_user[2]
+                                        }
+                                        message['info']['strangers'].append(stranger)
                                     # 是好友
                                     else:
                                         upline_message['info']['type'] = 'friend'
+                                        ''''
                                         message['info']['friends']['friend'+str(friends_num)]={
                                             'user_id': online_user[1],
                                             'user_name': online_user[2]
                                         }
                                         friends_num += 1
+                                        '''
+                                        friend = {
+                                            'user_id': online_user[1],
+                                            'user_name': online_user[2]
+                                        }
+                                        message['info']['friends'].append(friend)
                                     # 发送上线消息
                                     self.save_data(upline_message)
-                                print(3)
                                 # 记录好友、陌生人数量    
-                                message['info']['friends']['friends_num'] = friends_num
-                                message['info']['strangers']['strangers_num'] = strangers_num
+                                #message['info']['friends']['friends_num'] = friends_num
+                                #message['info']['strangers']['strangers_num'] = strangers_num
                                 # 将该用户加入在线用户列表
                                 users.append((conn, user_id, user_name, addr)) 
                             # 密码错误
@@ -149,21 +166,12 @@ class chat_server(threading.Thread):
                             message['info']['success'] = '无此用户'
                         # 发送响应消息
                         message = json.dumps(message, ensure_ascii=False)
-                        print(message)
                         conn.send(message.encode('utf-8'))
                     # 好友请求消息
                     elif request['type'] == 9:
                         print('好友请求')
-                        friend_message = {
-                            'send': '',
-                            'receive': '',
-                            'type': 9,
-                            'info': '好友请求'        
-                        }
                         accept_user = request['receive']
-                        friend_message['receive'] = accept_user
                         apply_user = request['send']
-                        friend_message['send'] = apply_user
                         sql = "select * from User where user_id = '%s'" %(accept_user)
                         sql1 = "select * from User_Friends where (user1_id = '%s' and user2_id = '%s') or (user1_id = '%s' and user2_id = '%s')" %(accept_user, apply_user, apply_user, accept_user)
                         cursor.execute(sql)
@@ -174,23 +182,33 @@ class chat_server(threading.Thread):
                             cursor.execute(sql1)
                             pair = cursor.fetchone()
                             if not pair:
-                                self.save_data(friend_message)
+                                self.save_data(request)
+                                print('好友请求发送！！！！')
                             else:
-                                friend_message['info'] = '重复请求'
-                                self.save_data(friend_message)
+                                message = {
+                                    'send': 'server',
+                                    'receive': apply_user,
+                                    'type': 10,
+                                    'info': '已经是好友了'   
+                                }
+                                self.save_data(message)
                     # 回复好友请求消息
                     elif request['type'] == 10:
                         print('回复好友请求')
-                        apply_user = request['receive']
-                        accept_user = request['send']
-                        agree = request['agree']
+                        message = request
+                        print(type(message))
+                        print(message)
+                        apply_user = message['receive']
+                        accept_user = message['send']
+                        agree = message['info']
                         if agree == 'agree':
                             sql = "INSERT INTO User_Friends (user1_id, user2_id) VALUES ('%s', '%s')" %(apply_user, accept_user)
                             try:
                                 cursor.execute(sql)
                                 db.commit()
-                                self.save_data(request)
+                                self.save_data(message)
                             except:
+                                print('错误错误错误！！！！！！')
                                 db.rollback()
                     # 个人信息修改
                     elif request['type'] == 11:
@@ -237,9 +255,9 @@ class chat_server(threading.Thread):
                         register_message['receive'] = user_id
                         register_message = json.dumps(register_message, ensure_ascii=False)
                         conn.send(register_message.encode('utf-8'))
-                        print(register_message)
                     # 其他由服务器直接转发的消息
                     else:
+                        print('其他消息')
                         self.save_data(request)
         # 断开连接
         except:
@@ -272,7 +290,6 @@ class chat_server(threading.Thread):
                 send = message['send']
                 receive = message['receive']
                 type = message['type']
-                print(type)
                 #私聊消息
                 if type == 3:
                     print('私聊消息')
@@ -305,7 +322,7 @@ class chat_server(threading.Thread):
                         if online_user[1] == receive:
                             message = json.dumps(message, ensure_ascii=False)
                             online_user[0].send(message.encode('utf-8'))
-                
+                #sleep(1)
 
     # 用户离线后将其从users中删除
     def delUser(self, conn):

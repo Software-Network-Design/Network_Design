@@ -176,21 +176,25 @@ def send_pic_procedure(user_num, rcv_num, file_path):
 def recv_():
     while True:
         data_str = chat_socket.recv(rcv_size)
-        data_str = json.loads(data_str.decode('utf-8'))
+        data_str = data_str.decode('utf-8')
         print(data_str)
+        data_str = json.loads(data_str)
 
 
 def rcv_one():
     data_str = chat_socket.recv(rcv_size)
+    data_str = data_str.decode('utf-8')
     print(data_str)
-    data_str = json.loads(data_str.decode('utf-8'))
+    data_str = json.loads(data_str)
+    return data_str
     
 
 
 if __name__ == '__main__':
     connect_server()
     login_procedure('u234', '123')
-    #friend_response('u234', 'agree', 'u123')
+    rcv_one()
+    friend_response('u234', 'agree', 'u123')
     print('发送同意')
     recv_()
 
