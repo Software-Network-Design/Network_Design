@@ -36,9 +36,9 @@ IP1 = tkinter.StringVar()
 IP1.set('127.0.0.1')  # 默认显示的ip和端口
 
 entry_ip = tkinter.Entry(ipRoot, width=120, textvariable=IP1)
-entry_ip.place(x=145, y=95, width=150,height=30)
-btnip = tkinter.Button(ipRoot,text="连接",command=connectS)
-btnip.place(x=198,y=130,width=60,height=25)
+entry_ip.place(x=145, y=95, width=150, height=30)
+btnip = tkinter.Button(ipRoot, text="连接", command=connectS)
+btnip.place(x=198, y=130, width=60, height=25)
 
 ipRoot.mainloop()
 
@@ -416,7 +416,7 @@ def friendRequest(stranger):#来自名为stranger的人的好友请求
     frRoot.mainloop() 
     if cnt==1:
         return sta
- 
+
 # 文本框使用的字体颜色
 listbox.tag_config('red', foreground='red')
 listbox.tag_config('blue', foreground='blue')
