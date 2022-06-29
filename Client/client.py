@@ -423,7 +423,7 @@ listbox.tag_config('blue', foreground='blue')
 listbox.tag_config('green', foreground='green')
 listbox.tag_config('pink', foreground='pink')
 
-#一对一聊天显示  
+#一对一聊天消息显示  
 def one2one(sender,content):#sender是发送者,content是发送内容
     global listbox #listbox是消息框,往里写消息
     if(chat == sender): #chat是当前消息框的人的ID,如果正显示对应聊天窗口,则显示消息内容
@@ -432,14 +432,27 @@ def one2one(sender,content):#sender是发送者,content是发送内容
         else:
             listbox.insert(tkinter.END, content, 'blue' )
 
+#群聊消息展示
 def one2group(sender,content):#sender是正在聊天的人
     global listbox #listbox是消息框,往里写消息
-    if(chat == "【群聊】"): #chat是当前消息框的人的ID,如果正显示对应聊天窗口,则显示消息内容
+    if(chat == "【群聊】"): #chat是当前消息框的人的ID,如果正显示群聊窗口,则显示消息内容
         if(sender != ID['receive']):#不是我发的
             listbox.insert(tkinter.END, content,'green')
         else:
             listbox.insert(tkinter.END, content, 'blue' )
 
+#聊天列表移除下线用户
+
+
+#聊天列表显示新上线用户
+
+
+#聊天框里面显示图片
+
+
+#显示聊天列表
+def showList():
+    pass
 
 
 #显示主页面
