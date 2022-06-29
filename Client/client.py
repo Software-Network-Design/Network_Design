@@ -6,9 +6,7 @@ import tkinter
 import tkinter.messagebox
 from tkinter.scrolledtext import ScrolledText
 from tkinter import filedialog
-
 import Client_Network as cn
-from Contact import Contact
 
 
 IP = ''
@@ -17,16 +15,15 @@ PORT = ''
 user = ''
 listbox1 = ''  # 用于显示在线用户的列表框
 ii = 0  # 用于判断是开还是关闭列表框
-users = {}  # 在线用户列表
+users = []  # 在线用户列表
 chat = '【群发】'  # 聊天对象, 默认为群聊
-
 
 
 #cn.connect_server() 初始化连接
 #cn.connect_file_rcv() 初始化连接
 
 def connectS():
-    cn.connect_server()      # 连接服务器
+    cn.connect_server()                  # 连接服务器
     ipRoot.destroy()
 
 ipRoot = tkinter.Tk()
@@ -53,6 +50,7 @@ loginRoot['height'] = 300
 loginRoot['width'] = 400
 loginRoot.resizable(0, 0)  # 限制窗口大小
 
+
 user = tkinter.StringVar()
 user.set('')
 password = tkinter.StringVar()
@@ -76,7 +74,6 @@ labelIP.place(x=74, y=180, width=80,height=20)
 entryIP = tkinter.Entry(loginRoot, width=120, textvariable=IP1)
 entryIP.place(x=144, y=175, width=150,height=30)"""
 
-
 #登录按钮
 def login(*args):
     global IP, user
@@ -94,7 +91,7 @@ def login(*args):
     elif data["info"]["success"] == "密码错误":
         tkinter.messagebox.showerror('温馨提示', message='密码错误，请重新输入')
 
-#注册界面
+
 def register():
     #注册窗口
     global loginReg
@@ -128,7 +125,7 @@ def register():
 
     loginReg.mainloop()
 
-#注册按钮
+#提交注册信息
 def registerConfirm():
     global ID 
     userReg = entryUserReg.get()
@@ -162,7 +159,6 @@ root.resizable(0,0)
 listboxFriend = tkinter.Listbox(root,height='20',bg='lightgrey',highlightbackground='white',yscrollcommand=True,font=('Times',24))
 listboxFriend.place(x=0,y=0,width=180,height=550)
 
-#加载所有上线人员
 listboxFriend.delete(0,tkinter.END)
 for i in ['【群发】','a','b','c','d','e']:
     listboxFriend.insert(tkinter.END,i)
@@ -307,7 +303,6 @@ def private(*args):
     global chat
     # 获取点击的索引然后得到内容(用户名)
     indexs = listboxFriend.curselection()
-    print(indexs)
     index = indexs[0]
     if index >= 0:
         chat = listboxFriend.get(index)
@@ -359,74 +354,25 @@ btnSend.place(x=670, y=513, width=120, height=30)
 root.bind('<Return>', send)  # 绑定回车发送信息
 
 #菜单栏函数
-def do_job():
+def doJob():
     pass
 
 #创建菜单栏
 menubar = tkinter.Menu(root)
 filemenu = tkinter.Menu(menubar, tearoff=0)
+menubar.add_cascade(label='文件', menu=filemenu)
+filemenu.add_command(label='新建', command=doJob)
+filemenu.add_command(label='打开', command=doJob)
+filemenu.add_command(label='保存', command=doJob)
+filemenu.add_separator()
+filemenu.add_command(label='退出', command=root.quit)
 
-menubar.add_cascade(label='Chat', menu=filemenu)
-filemenu.add_command(label='版本', command=do_job)
-filemenu.add_command(label='声明', command=do_job)
-filemenu.add_separator()#分割线
-filemenu.add_command(label='退出', command=root.quit)#退出
- 
+
 editmenu = tkinter.Menu(menubar, tearoff=0)
-menubar.add_cascade(label='Edit', menu=editmenu)
-#editmenu.add_command(label='Cut', command=do_job)
-editmenu.add_command(label='Copy', command=do_job)
-editmenu.add_command(label='Paste', command=do_job)
-
-"""minemenu = tkinter.Menu(menubar, tearoff=0)
-menubar.add_cascade(label='mine', menu=minemenu)
-#editmenu.add_command(label='Cut', command=do_job)
-minemenu.add_command(label='好友申请', command=do_job)"""
-
-"""submenu = tkinter.Menu(filemenu)
-filemenu.add_cascade(label='Import', menu=submenu, underline=0)
-submenu.add_command(label="Submenu1", command=do_job)"""
-
-root.config(menu=menubar)
-
-
-#好友请求弹窗
-def acc(): #同意好友请求
-    global sta,cnt
-    sta = True
-    cnt=1
-    frRoot.destroy()
-
-
-def turnDown(): #拒绝好友请求
-    global sta,cnt
-    sta = False
-    cnt=1
-    frRoot.destroy()
-
-
-def friendRequest(stranger):#来自名为stranger的人的好友请求
-    global sta,frRoot,cnt
-    sta = bool()
-    cnt = int()
-    frRoot = tkinter.Toplevel()
-    frRoot.title("好友申请")
-    frRoot['height'] = 100
-    frRoot['width'] = 500
-    frRoot.resizable(0,0)
-    labelFr = tkinter.Label(frRoot, text=str(stranger)+"请求添加您为好友")
-    labelFr.place(x=5,y=10,height=20,width=200)
-    btnFr1 = tkinter.Button(frRoot, text="同意",command=acc)
-    btnFr1.place(x=120,y=68,height=25,width=120)
-    btnFr2 = tkinter.Button(frRoot, text="拒绝",command=turnDown)
-    btnFr2.place(x=260,y=68,height=25,width=120)
-    frRoot.mainloop() 
-    if cnt==1:
-        return sta
- 
-
-
-
+menubar.add_cascade(label='编辑', menu=editmenu)
+editmenu.add_command(label='剪切', command=doJob)
+editmenu.add_command(label='复制', command=doJob)
+editmenu.add_command(label='粘贴', command=doJob)
 
 #显示主页面
 root.mainloop()
