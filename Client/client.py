@@ -62,6 +62,7 @@ entryIP.place(x=144, y=175, width=150,height=30)
 #登录按钮
 def login(*args):
     global IP, PORT, user
+    # ~~~~~~~~~~~~~~客户端只需要服务器的ip，端口号是固定的~~~~~~~~~~~~~！！
     IP, PORT = entryIP.get().split(':')  # 获取IP和端口号
     PORT = int(PORT)                     # 端口号需要为int类型
     cn.connect_server()                  # 连接服务器
