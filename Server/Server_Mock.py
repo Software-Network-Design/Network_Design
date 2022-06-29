@@ -16,11 +16,15 @@ from server_config import *
 db = pymysql.connect(host='nas.boeing773er.site', port=49156, user='root', passwd='q1w2e3r4', db='Chat_Program', charset='utf8')
 cursor = db.cursor()
 # 用于存放客户端发送的信息的队列
-que = queue.Queue()                
+que = queue.Queue()
+#用于存放文件队列
+fileque = queue.Queue()
 # 用于存放在线用户的信息  [conn, user_id, user_name, addr]             
 users = []          
 # 创建锁, 防止多个线程写入数据的顺序打乱                     
-lock = threading.Lock()                         
+lock = threading.Lock()      
+#用户-正在发送对象表
+send_receive = {}
 
 def register(user_name, user_pwd):
     id = str(random.randrange(100000000, 999999999))
@@ -341,19 +345,143 @@ class chat_server(threading.Thread):
             t.start()
         self.socket.close()
 
+class file_server(threading.Thread):
+    # 定义为全局变量
+    global fileque, users, lock, send_receive
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.addr = (HOST, File_PORT)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+    # addr ——— (host,port)
+    # conn ——— socket
+    def connect(self, conn, addr):
+        try:
+            while True:
+                request = conn.recv(1024)
+                if not request:
+                    break
+                if(check_json_format(request)):
+                    request = request.decode('utf-8')
+                    request = json.loads(request)
+
+                # 处理之后接收到的各类型消息
+                    # 图片或文件信息
+                    if request['type'] == 6 or request['type'] == 12:
+                        print('图片或文件信息')
+                        # 登录请求返回消息
+                        #message = {
+                        #    'send': '',
+                        #    'receive': '',
+                        #    'type': 0,
+                        #    'info': ''
+                        #}
+                        message = request
+                        receive = request['receive']
+                        send = request['send']
+                        is_online = 0
+                        if receive_id == '':
+                            group_send = 1
+                        else:
+                            group_send = 0
+                        for online_user in users:
+                            if online_user[1] == receive:
+                                is_online = 1
+                        if(not is_online and not group_send):
+                            print("用户不在线！")
+                        elif(not group_send):
+                            self.save_data(message)
+                            send_receive[send] = receive
+                        else:
+                            send_receive[send] = receive
+                            for online_user in users:
+                                message['receive'] = online_user[1]
+                                self.save_data(message)
+                        self.save_data(message)
+                    # 文件或图片内容
+                else:
+                    send_id = 0 
+                    #receive_conn = None
+                    for online_user in users:
+                        if(conn == online_user[0]):
+                            send_id = online_user[1]
+                    receive_id = send_receive[send_id]
+                    message = {
+                        'send': send_id,
+                        'receive': receive_id,
+                        'info': request,
+                        'type':99
+                    }
+                    self.save_data(request)
+        # 断开连接
+        except:
+            pass
+        finally:
+            conn.close()
+            print('用户下线或服务器出错')
+
+    # 将聊天消息保存到队列
+    def save_data(self, message):
+        lock.acquire()
+        try:
+            que.put((message))
+        finally:
+            lock.release()
+
+    # 将队列中消息转发
+    def send_data(self):
+        while True:
+            if not que.empty():
+                message = que.get()
+                send = message['send']
+                receive = message['receive']
+                info = message['info']
+                type = message['type']
+                if(type == 99):
+                    for online_user in users:
+                        if online_user[1] == receive:
+                            online_user[0].send(info)
+                else:
+                    for online_user in users:
+                        if online_user[1] == receive:
+                            message = json.dumps(message, ensure_ascii=False)
+                            online_user[0].send(message.encode('utf-8'))
+
+            #sleep(1)
+    
+    def run(self):
+        self.socket.bind((HOST, File_PORT))
+        self.socket.listen(Max)
+        print('文件服务器正在运行中...')
+        q = threading.Thread(target=self.send_data)
+        q.start()
+        while True:
+            conn, addr = self.socket.accept()
+            t = threading.Thread(target=self.connect, args=(conn, addr))
+            t.start()
+        self.socket.close()
+
+def check_json_format(raw_msg): 
+    if isinstance(raw_msg, str):
+        try : 
+            json.loads(raw_msg, encoding= 'utf-8' ) 
+        except ValueError: 
+            return False 
+        return True
+    else:
+        return False
 
 if __name__ == '__main__':
     cserver = chat_server()
     cserver.start()
+    fserver = file_server()
+    fserver.start()
     while True:
         time.sleep(1)
         if not cserver.isAlive():
             print("Chat connection lost...")
             sys.exit(0)
-
-
-
-
-
-
-
+        if not fserver.isAlive():
+            print("File connection lost...")
+            sys.exit(0)

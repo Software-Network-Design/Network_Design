@@ -76,7 +76,7 @@ entryIP.place(x=144, y=175, width=150,height=30)"""
 
 #登录按钮
 def login(*args):
-    global IP, user
+    global IP, user,data
     # ~~~~~~~~~~~~~~客户端只需要服务器的ip，端口号是固定的~~~~~~~~~~~~~！！
     #IP= entryIP.get() # 获取IP
     user = entryUser.get()
@@ -84,7 +84,7 @@ def login(*args):
     cn.login_procedure(user,password)    #建立验证
     data = cn.rcv_one()        #接收服务器验证信息
     print(data)
-    if data["info"]["success"] == "登陆成功":
+    if data["info"]["success"] == "登录成功":
         loginRoot.destroy()                  # 关闭窗口
     elif data["info"]["success"] == "无此用户":
         tkinter.messagebox.showerror('温馨提示', message='请先注册')
@@ -189,8 +189,6 @@ entryText.place(x=181, y=405, width=620, height=110)
 #创建消息窗口
 listbox = ScrolledText(root,relief="solid",bd=1)
 listbox.place(x=181,y=0,width=620,height=375)
-
-
 
 # 发送表情
 def mark(exp):  # 参数是发的表情图标记, 发送后将按钮销毁
@@ -298,11 +296,12 @@ def sendPicture():
 
     picRoot.mainloop()
 
-#私聊功能
+#获取当前聊天对象(包括群聊和私聊对象)
 def private(*args):
     global chat
     # 获取点击的索引然后得到内容(用户名)
     indexs = listboxFriend.curselection()
+    print(indexs)
     index = indexs[0]
     if index >= 0:
         chat = listboxFriend.get(index)
@@ -354,25 +353,94 @@ btnSend.place(x=670, y=513, width=120, height=30)
 root.bind('<Return>', send)  # 绑定回车发送信息
 
 #菜单栏函数
-def doJob():
+def do_job():
     pass
 
 #创建菜单栏
 menubar = tkinter.Menu(root)
 filemenu = tkinter.Menu(menubar, tearoff=0)
-menubar.add_cascade(label='文件', menu=filemenu)
-filemenu.add_command(label='新建', command=doJob)
-filemenu.add_command(label='打开', command=doJob)
-filemenu.add_command(label='保存', command=doJob)
-filemenu.add_separator()
-filemenu.add_command(label='退出', command=root.quit)
 
 
+menubar.add_cascade(label='Chat', menu=filemenu)
+filemenu.add_command(label='版本', command=do_job)
+filemenu.add_command(label='声明', command=do_job)
+filemenu.add_separator()#分割线
+filemenu.add_command(label='退出', command=root.quit)#退出
+ 
 editmenu = tkinter.Menu(menubar, tearoff=0)
-menubar.add_cascade(label='编辑', menu=editmenu)
-editmenu.add_command(label='剪切', command=doJob)
-editmenu.add_command(label='复制', command=doJob)
-editmenu.add_command(label='粘贴', command=doJob)
+menubar.add_cascade(label='Edit', menu=editmenu)
+#editmenu.add_command(label='Cut', command=do_job)
+editmenu.add_command(label='Copy', command=do_job)
+editmenu.add_command(label='Paste', command=do_job)
+
+"""minemenu = tkinter.Menu(menubar, tearoff=0)
+menubar.add_cascade(label='mine', menu=minemenu)
+#editmenu.add_command(label='Cut', command=do_job)
+minemenu.add_command(label='好友申请', command=do_job)"""
+
+"""submenu = tkinter.Menu(filemenu)
+filemenu.add_cascade(label='Import', menu=submenu, underline=0)
+submenu.add_command(label="Submenu1", command=do_job)"""
+
+root.config(menu=menubar)
+
+
+#好友请求弹窗
+def acc(): #同意好友请求
+    global sta,cnt
+    sta = True
+    cnt=1
+    frRoot.destroy()
+    
+def turnDown(): #拒绝好友请求
+    global sta,cnt
+    sta = False
+    cnt=1
+    frRoot.destroy()
+
+def friendRequest(stranger):#来自名为stranger的人的好友请求
+    global sta,frRoot,cnt
+    sta = bool()
+    cnt = int()
+    frRoot = tkinter.Toplevel()
+    frRoot.title("好友申请")
+    frRoot['height'] = 100
+    frRoot['width'] = 500
+    frRoot.resizable(0,0)
+    labelFr = tkinter.Label(frRoot, text=str(stranger)+"请求添加您为好友")
+    labelFr.place(x=5,y=10,height=20,width=200)
+    btnFr1 = tkinter.Button(frRoot, text="同意",command=acc)
+    btnFr1.place(x=120,y=68,height=25,width=120)
+    btnFr2 = tkinter.Button(frRoot, text="拒绝",command=turnDown)
+    btnFr2.place(x=260,y=68,height=25,width=120)
+    frRoot.mainloop() 
+    if cnt==1:
+        return sta
+ 
+# 文本框使用的字体颜色
+listbox.tag_config('red', foreground='red')
+listbox.tag_config('blue', foreground='blue')
+listbox.tag_config('green', foreground='green')
+listbox.tag_config('pink', foreground='pink')
+
+#一对一聊天显示  
+def one2one(sender,content):#sender是发送者,content是发送内容
+    global listbox #listbox是消息框,往里写消息
+    if(chat == sender): #chat是当前消息框的人的ID,如果正显示对应聊天窗口,则显示消息内容
+        if(sender != ID['receive']):#不是我发的
+            listbox.insert(tkinter.END, content,'green')
+        else:
+            listbox.insert(tkinter.END, content, 'blue' )
+
+def one2group(sender,content):#sender是正在聊天的人
+    global listbox #listbox是消息框,往里写消息
+    if(chat == "【群聊】"): #chat是当前消息框的人的ID,如果正显示对应聊天窗口,则显示消息内容
+        if(sender != ID['receive']):#不是我发的
+            listbox.insert(tkinter.END, content,'green')
+        else:
+            listbox.insert(tkinter.END, content, 'blue' )
+
+
 
 #显示主页面
 root.mainloop()
