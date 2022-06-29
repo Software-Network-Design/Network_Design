@@ -47,7 +47,7 @@ def login_procedure(user_id, user_pwd):
     temp_dict['info'] = {'user_id': user_id, 'user_pwd': user_pwd}
     data_str = json.dumps(temp_dict, ensure_ascii=False)
     chat_socket.send(data_str.encode('utf-8'))
-
+    
 # 发送私聊消息
 def send_dm(user_num, crv_num, chat_message):
     temp_dict = dict()
@@ -184,6 +184,7 @@ def rcv_one():
     data_str = chat_socket.recv(rcv_size)
     data_str = json.loads(data_str.decode('utf-8'))
     print(data_str)
+    return data_str
 
 if __name__ == '__main__':
     connect_server()
