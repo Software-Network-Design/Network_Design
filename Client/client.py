@@ -26,7 +26,7 @@ chat = '【群发】'  # 聊天对象, 默认为群聊
 #cn.connect_server() 初始化连接
 #cn.connect_file_rcv() 初始化连接
 
-"""
+
 # 登陆窗口
 loginRoot = tkinter.Tk()
 loginRoot.title('聊天室')
@@ -37,9 +37,9 @@ loginRoot.resizable(0, 0)  # 限制窗口大小
 IP1 = tkinter.StringVar()
 IP1.set('127.0.0.1:8888')  # 默认显示的ip和端口
 user = tkinter.StringVar()
-user.set('请输入用户名')
+user.set('')
 Password = tkinter.StringVar()
-Password.set('请输入密码')
+Password.set('')
 
 #用户名标签
 labelUser = tkinter.Label(loginRoot,text="用户名:")
@@ -65,6 +65,7 @@ def login(*args):
     # ~~~~~~~~~~~~~~客户端只需要服务器的ip，端口号是固定的~~~~~~~~~~~~~！！
     IP, PORT = entryIP.get().split(':')  # 获取IP和端口号
     PORT = int(PORT)                     # 端口号需要为int类型
+    cn.connect_server()                  # 连接服务器
     user = entryUser.get()
     password = entryPassword.get()
     data = cn.login_procedure(user,password)    #建立验证
@@ -122,7 +123,7 @@ btnRegister = tkinter.Button(loginRoot, text='注册', command=register)
 btnRegister.place(x=132, y=250, width=150, height=30)
 
 #显示登录窗口
-loginRoot.mainloop()"""
+loginRoot.mainloop()
 
 #*************************************************************#
 
@@ -330,6 +331,27 @@ def send(*args):
 btnSend = tkinter.Button(root, text='发送', command=send)
 btnSend.place(x=670, y=513, width=120, height=30)
 root.bind('<Return>', send)  # 绑定回车发送信息
+
+#菜单栏函数
+def doJob():
+    pass
+
+#创建菜单栏
+menubar = tkinter.Menu(root)
+filemenu = tkinter.Menu(menubar, tearoff=0)
+menubar.add_cascade(label='文件', menu=filemenu)
+filemenu.add_command(label='新建', command=doJob)
+filemenu.add_command(label='打开', command=doJob)
+filemenu.add_command(label='保存', command=doJob)
+filemenu.add_separator()
+filemenu.add_command(label='退出', command=root.quit)
+
+
+editmenu = tkinter.Menu(menubar, tearoff=0)
+menubar.add_cascade(label='编辑', menu=editmenu)
+editmenu.add_command(label='剪切', command=doJob)
+editmenu.add_command(label='复制', command=doJob)
+editmenu.add_command(label='粘贴', command=doJob)
 
 #显示主页面
 root.mainloop()
