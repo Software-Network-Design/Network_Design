@@ -10,7 +10,6 @@ import random
 from time import sleep
 from server_config import *
 
-# message --- json格式信息 packet --- (addr,message)
 # addr --- (host,port)
 
 # 数据库连接
@@ -205,7 +204,7 @@ class chat_server(threading.Thread):
                         apply_user = message['receive']
                         accept_user = message['send']
                         agree = message['info']
-                        if agree == 'agree':
+                        if agree == True:
                             sql = "INSERT INTO User_Friends (user1_id, user2_id) VALUES ('%s', '%s')" %(apply_user, accept_user)
                             try:
                                 cursor.execute(sql)
@@ -233,13 +232,24 @@ class chat_server(threading.Thread):
                         New_Inf = request['info']['NewInf']
                         correct_message['info']['NewInf'] = New_Inf
                         if(select == 0):
-                            sql = "UPDATE User SET user_pwd = '%s' WHERE (user_id = '%s')"%(New_Inf, user_id)
+                            sql = "UPDATE User SET user_pwd = '%s' WHERE (user_id = '%s')" %(New_Inf, user_id)
                         else:
-                            sql = "UPDATE User SET name = '%s' WHERE (user_id = '%s')"%(New_Inf, user_id)
+                            sql = "UPDATE User SET name = '%s' WHERE (user_id = '%s')" %(New_Inf, user_id)
                         try:
                             cursor.execute(sql)
                             db.commit()
                             self.save_data(correct_message)
+                            if select == 1:
+                                modify_message = {
+                                    'send': user_id,
+                                    'receive': '',
+                                    'type': 16,
+                                    'info': {
+                                        'user_id': user_id,
+                                        'user_name': New_Inf
+                                    }
+                                }
+                                self.save_data(modify_message)
                         except:
                             print('出错了')
                             db.rollback()
@@ -293,35 +303,18 @@ class chat_server(threading.Thread):
                 message = que.get()
                 send = message['send']
                 receive = message['receive']
-                type = message['type']
-                #私聊消息
-                if type == 3:
-                    print('私聊消息')
-                    for online_user in users:
-                        if online_user[1] == receive:
-                            message = json.dumps(message, ensure_ascii=False)
-                            online_user[0].send(message.encode('utf-8'))
+                type = message['type']  
+                print(message)      
                 # 群发消息
-                elif type == 4:
+                if type == 4 or type == 5 or type == 8:
                     print('群发消息')
                     for online_user in users:
                         if online_user[1] != send:
                             message = json.dumps(message, ensure_ascii=False)
                             online_user[0].send(message.encode('utf-8')) 
-                # 注销消息
-                elif type == 5:
-                    print('注销消息')
-                    for online_user in users:
-                        message = json.dumps(message, ensure_ascii=False)
-                        online_user[0].send(message.encode('utf-8')) 
-                # 上线提示
-                elif message['type'] == 8:
-                    print('上线提示')
-                    for online_user in users:
-                        if online_user[1] == receive:
-                            message = json.dumps(message, ensure_ascii=False)
-                            online_user[0].send(message.encode('utf-8')) 
+                # 私发消息
                 else:
+                    print('私发消息')
                     for online_user in users:
                         if online_user[1] == receive:
                             message = json.dumps(message, ensure_ascii=False)
