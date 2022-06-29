@@ -6,9 +6,7 @@ import tkinter
 import tkinter.messagebox
 from tkinter.scrolledtext import ScrolledText
 from tkinter import filedialog
-
 import Client_Network as cn
-from Contact import Contact
 
 
 IP = ''
@@ -21,12 +19,11 @@ users = []  # 在线用户列表
 chat = '【群发】'  # 聊天对象, 默认为群聊
 
 
-
 #cn.connect_server() 初始化连接
 #cn.connect_file_rcv() 初始化连接
 
 def connectS():
-    cn.connect_server()      # 连接服务器
+    cn.connect_server()                  # 连接服务器
     ipRoot.destroy()
 
 ipRoot = tkinter.Tk()
@@ -52,6 +49,7 @@ loginRoot.title('聊天室')
 loginRoot['height'] = 300
 loginRoot['width'] = 400
 loginRoot.resizable(0, 0)  # 限制窗口大小
+
 
 user = tkinter.StringVar()
 user.set('')
@@ -93,7 +91,7 @@ def login(*args):
     elif data["info"]["success"] == "密码错误":
         tkinter.messagebox.showerror('温馨提示', message='密码错误，请重新输入')
 
-#注册界面
+
 def register():
     #注册窗口
     global loginReg
@@ -127,7 +125,7 @@ def register():
 
     loginReg.mainloop()
 
-#注册按钮
+#提交注册信息
 def registerConfirm():
     global ID 
     userReg = entryUserReg.get()
@@ -161,7 +159,6 @@ root.resizable(0,0)
 listboxFriend = tkinter.Listbox(root,height='20',bg='lightgrey',highlightbackground='white',yscrollcommand=True,font=('Times',24))
 listboxFriend.place(x=0,y=0,width=180,height=550)
 
-#加载所有上线人员
 listboxFriend.delete(0,tkinter.END)
 for i in ['【群发】','a','b','c','d','e']:
     listboxFriend.insert(tkinter.END,i)
@@ -304,7 +301,6 @@ def private(*args):
     global chat
     # 获取点击的索引然后得到内容(用户名)
     indexs = listboxFriend.curselection()
-    print(indexs)
     index = indexs[0]
     if index >= 0:
         chat = listboxFriend.get(index)
@@ -362,6 +358,7 @@ def do_job():
 #创建菜单栏
 menubar = tkinter.Menu(root)
 filemenu = tkinter.Menu(menubar, tearoff=0)
+
 
 menubar.add_cascade(label='Chat', menu=filemenu)
 filemenu.add_command(label='版本', command=do_job)
@@ -441,8 +438,6 @@ def one2group(sender,content):#sender是正在聊天的人
             listbox.insert(tkinter.END, content,'green')
         else:
             listbox.insert(tkinter.END, content, 'blue' )
-
-
 
 
 
