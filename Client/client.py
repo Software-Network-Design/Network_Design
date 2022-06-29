@@ -301,6 +301,7 @@ def private(*args):
     global chat
     # 获取点击的索引然后得到内容(用户名)
     indexs = listboxFriend.curselection()
+    print(indexs)
     index = indexs[0]
     if index >= 0:
         chat = listboxFriend.get(index)
