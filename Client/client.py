@@ -78,7 +78,7 @@ entryIP.place(x=144, y=175, width=150,height=30)"""
 
 #登录按钮
 def login(*args):
-    global IP, user
+    global IP, user,data
     # ~~~~~~~~~~~~~~客户端只需要服务器的ip，端口号是固定的~~~~~~~~~~~~~！！
     #IP= entryIP.get() # 获取IP
     user = entryUser.get()
@@ -86,7 +86,7 @@ def login(*args):
     cn.login_procedure(user,password)    #建立验证
     data = cn.rcv_one()        #接收服务器验证信息
     print(data)
-    if data["info"]["success"] == "登陆成功":
+    if data["info"]["success"] == "登录成功":
         loginRoot.destroy()                  # 关闭窗口
     elif data["info"]["success"] == "无此用户":
         tkinter.messagebox.showerror('温馨提示', message='请先注册')
@@ -192,8 +192,6 @@ entryText.place(x=181, y=405, width=620, height=110)
 #创建消息窗口
 listbox = ScrolledText(root,relief="solid",bd=1)
 listbox.place(x=181,y=0,width=620,height=375)
-
-
 
 # 发送表情
 def mark(exp):  # 参数是发的表情图标记, 发送后将按钮销毁
@@ -301,7 +299,7 @@ def sendPicture():
 
     picRoot.mainloop()
 
-#私聊功能
+#获取当前聊天对象(包括群聊和私聊对象)
 def private(*args):
     global chat
     # 获取点击的索引然后得到内容(用户名)
@@ -421,6 +419,29 @@ def friendRequest(stranger):#来自名为stranger的人的好友请求
     if cnt==1:
         return sta
  
+# 文本框使用的字体颜色
+listbox.tag_config('red', foreground='red')
+listbox.tag_config('blue', foreground='blue')
+listbox.tag_config('green', foreground='green')
+listbox.tag_config('pink', foreground='pink')
+
+#一对一聊天显示  
+def one2one(sender,content):#sender是发送者,content是发送内容
+    global listbox #listbox是消息框,往里写消息
+    if(chat == sender): #chat是当前消息框的人的ID,如果正显示对应聊天窗口,则显示消息内容
+        if(sender != ID['receive']):#不是我发的
+            listbox.insert(tkinter.END, content,'green')
+        else:
+            listbox.insert(tkinter.END, content, 'blue' )
+
+def one2group(sender,content):#sender是正在聊天的人
+    global listbox #listbox是消息框,往里写消息
+    if(chat == "【群聊】"): #chat是当前消息框的人的ID,如果正显示对应聊天窗口,则显示消息内容
+        if(sender != ID['receive']):#不是我发的
+            listbox.insert(tkinter.END, content,'green')
+        else:
+            listbox.insert(tkinter.END, content, 'blue' )
+
 
 
 
