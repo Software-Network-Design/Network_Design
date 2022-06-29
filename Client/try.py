@@ -18,7 +18,7 @@ def friendRequest(stranger):#来自名为stranger的人的好友请求
     global sta,frRoot,cnt
     sta = bool()
     cnt = int()
-    frRoot = tkinter.Tk()
+    frRoot = tkinter.Tkl()
     frRoot.title("好友申请")
     frRoot['height'] = 100
     frRoot['width'] = 500
