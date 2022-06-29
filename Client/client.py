@@ -6,15 +6,11 @@ import tkinter
 import tkinter.messagebox
 from tkinter.scrolledtext import ScrolledText
 from tkinter import filedialog
-from matplotlib.pyplot import text
-#import Client_Network as cn
+import Client_Network as cn
 
-
-from pandas_datareader import test
-from soupsieve import select
-from sqlalchemy import true  # 导入多行文本框用到的包
 
 IP = ''
+ID = '' #用户ID
 PORT = ''
 user = ''
 listbox1 = ''  # 用于显示在线用户的列表框
@@ -26,6 +22,26 @@ chat = '【群发】'  # 聊天对象, 默认为群聊
 #cn.connect_server() 初始化连接
 #cn.connect_file_rcv() 初始化连接
 
+def connectS():
+    cn.connect_server()                  # 连接服务器
+    ipRoot.destroy()
+
+ipRoot = tkinter.Tk()
+ipRoot.title('选择IP')
+ipRoot['height'] = 200
+ipRoot['width'] =  400
+ipRoot.resizable(0, 0)
+
+IP1 = tkinter.StringVar()
+IP1.set('127.0.0.1')  # 默认显示的ip和端口
+
+entry_ip = tkinter.Entry(ipRoot, width=120, textvariable=IP1)
+entry_ip.place(x=145, y=95, width=150,height=30)
+btnip = tkinter.Button(ipRoot,text="连接",command=connectS)
+btnip.place(x=198,y=130,width=60,height=25)
+
+ipRoot.mainloop()
+
 
 # 登陆窗口
 loginRoot = tkinter.Tk()
@@ -34,16 +50,15 @@ loginRoot['height'] = 300
 loginRoot['width'] = 400
 loginRoot.resizable(0, 0)  # 限制窗口大小
 
-IP1 = tkinter.StringVar()
-IP1.set('127.0.0.1:8888')  # 默认显示的ip和端口
+
 user = tkinter.StringVar()
 user.set('')
 Password = tkinter.StringVar()
 Password.set('')
 
 #用户名标签
-labelUser = tkinter.Label(loginRoot,text="用户名:")
-labelUser.place(x=90, y=100, width=50,height=20)
+labelUser = tkinter.Label(loginRoot,text="用户ID:")
+labelUser.place(x=86, y=100, width=50,height=20)
 entryUser = tkinter.Entry(loginRoot, width=120, textvariable=user)
 entryUser.place(x=145, y=95, width=150,height=30)
 
@@ -53,22 +68,22 @@ labelPassword.place(x=98, y=140, width=50,height=20)
 entryPassword = tkinter.Entry(loginRoot, width=120, textvariable=Password)
 entryPassword.place(x=144, y=135, width=150,height=30)
 
-#服务器IP标签
-labelIP = tkinter.Label(loginRoot,text="地址:端口:")
-labelIP.place(x=68, y=180, width=80,height=20)
-entryIP = tkinter.Entry(loginRoot, width=120, textvariable=Password)
-entryIP.place(x=144, y=175, width=150,height=30)
+"""#服务器IP标签
+labelIP = tkinter.Label(loginRoot,text=" IP地址:")
+labelIP.place(x=74, y=180, width=80,height=20)
+entryIP = tkinter.Entry(loginRoot, width=120, textvariable=IP1)
+entryIP.place(x=144, y=175, width=150,height=30)"""
 
 #登录按钮
 def login(*args):
-    global IP, PORT, user
+    global IP, user
     # ~~~~~~~~~~~~~~客户端只需要服务器的ip，端口号是固定的~~~~~~~~~~~~~！！
-    IP, PORT = entryIP.get().split(':')  # 获取IP和端口号
-    PORT = int(PORT)                     # 端口号需要为int类型
-    cn.connect_server()                  # 连接服务器
+    #IP= entryIP.get() # 获取IP
     user = entryUser.get()
     password = entryPassword.get()
-    data = cn.login_procedure(user,password)    #建立验证
+    cn.login_procedure(user,password)    #建立验证
+    data = cn.rcv_one()        #接收服务器验证信息
+    print(data)
     if data["info"]["success"] == "登陆成功":
         loginRoot.destroy()                  # 关闭窗口
     elif data["info"]["success"] == "无此用户":
@@ -104,13 +119,16 @@ def register():
 
     global userReg,passwordReg
     userReg = entryUserReg.get()
-    password= entryPasswordReg.get()
+    passwordReg= entryPasswordReg.get()
 
     loginReg.mainloop()
 
 #提交注册信息
 def registerConfirm():
-    tkinter.messagebox.showerror('温馨提示', message='注册成功')
+    global ID 
+    cn.register_procedure(userReg,passwordReg)
+    ID = cn.rcv_one()
+    tkinter.messagebox.showerror('温馨提示', message='注册成功\n您的ID是: '+str(ID['receive']))
     loginReg.destroy()
 
 
