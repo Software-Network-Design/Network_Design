@@ -385,8 +385,8 @@ class file_server(threading.Thread):
                         #    'info': ''
                         #}
                         message = request
-                        receive_id = request['receive']
-                        send_id = request['send']
+                        receive = request['receive']
+                        send = request['send']
                         is_online = 0
                         if receive_id == '':
                             group_send = 1
@@ -401,7 +401,7 @@ class file_server(threading.Thread):
                             self.save_data(message)
                             send_receive[send] = receive
                         else:
-                            send_receive[sned] = receive
+                            send_receive[send] = receive
                             for online_user in users:
                                 message['receive'] = online_user[1]
                                 self.save_data(message)
