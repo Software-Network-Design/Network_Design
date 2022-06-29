@@ -77,12 +77,14 @@ class chat_server(threading.Thread):
                             'info': {
                                 # sucess：无此用户、密码错误、登陆成功
                                 'success': '',
-                                'strangers': {
-                                    'strangers_num': 0
-                                },
-                                'friends': {
-                                    'friends_num': 0
-                                }
+                                'strangers': [],
+                                #{
+                                    #'strangers_num': 0
+                                #},
+                                'friends': []
+                                #{
+                                    #'friends_num': 0
+                                #}
                             }
                         }
                         user_id = request['info']['user_id']
@@ -114,36 +116,46 @@ class chat_server(threading.Thread):
                                         'type': ''
                                     }
                                 }
-                                print(2)
                                 for online_user in users:
-                                    print(3)
                                     upline_message['receive'] = online_user[1]
                                     sql2 = "select * from User_Friends where (user1_id = '%s' and user2_id = '%s') or (user1_id = '%s' and user2_id = '%s')" %(user_id, online_user[1], online_user[1], user_id)
                                     cursor.execute(sql2)
                                     if_friends = cursor.fetchall()
-                                    print(4)
                                     # 是陌生人
                                     if not if_friends:
                                         upline_message['info']['type'] = 'stranger'
+                                        ''''
                                         message['info']['strangers']['stranger'+str(strangers_num)]={
                                             'user_id': online_user[1],
                                             'user_name': online_user[2]
                                         }
                                         strangers_num += 1
+                                        '''
+                                        stranger = {
+                                            'user_id': online_user[1],
+                                            'user_name': online_user[2]
+                                        }
+                                        message['info']['strangers'].append(stranger)
                                     # 是好友
                                     else:
                                         upline_message['info']['type'] = 'friend'
+                                        ''''
                                         message['info']['friends']['friend'+str(friends_num)]={
                                             'user_id': online_user[1],
                                             'user_name': online_user[2]
                                         }
                                         friends_num += 1
+                                        '''
+                                        friend = {
+                                            'user_id': online_user[1],
+                                            'user_name': online_user[2]
+                                        }
+                                        message['info']['friends'].append(friend)
                                     # 发送上线消息
                                     self.save_data(upline_message)
-                                print(3)
                                 # 记录好友、陌生人数量    
-                                message['info']['friends']['friends_num'] = friends_num
-                                message['info']['strangers']['strangers_num'] = strangers_num
+                                #message['info']['friends']['friends_num'] = friends_num
+                                #message['info']['strangers']['strangers_num'] = strangers_num
                                 # 将该用户加入在线用户列表
                                 users.append((conn, user_id, user_name, addr)) 
                             # 密码错误

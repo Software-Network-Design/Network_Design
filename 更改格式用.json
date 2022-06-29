@@ -1,6 +1,15 @@
 {
-    "send": "u123",
-    "receive": "u234",
-    "type": 3,
-    "info": "私聊噢"
+    "send": "server",
+    "receive": "u123",
+    "type": 2,
+    "info": {
+        "success": "登录成功",
+        "strangers": [],
+        "friends": [
+            {
+                "user_id": "u234",
+                "user_name": "xyz"
+            }
+        ]
+    }
 }
