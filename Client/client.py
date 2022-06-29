@@ -53,8 +53,8 @@ loginRoot.resizable(0, 0)  # 限制窗口大小
 
 user = tkinter.StringVar()
 user.set('')
-Password = tkinter.StringVar()
-Password.set('')
+password = tkinter.StringVar()
+password.set('')
 
 #用户名标签
 labelUser = tkinter.Label(loginRoot,text="用户ID:")
@@ -65,7 +65,7 @@ entryUser.place(x=145, y=95, width=150,height=30)
 #密码标签
 labelPassword = tkinter.Label(loginRoot,text="密码:")
 labelPassword.place(x=98, y=140, width=50,height=20)
-entryPassword = tkinter.Entry(loginRoot, width=120, textvariable=Password)
+entryPassword = tkinter.Entry(loginRoot, width=120, textvariable=password)
 entryPassword.place(x=144, y=135, width=150,height=30)
 
 """#服务器IP标签
@@ -101,10 +101,16 @@ def register():
     loginReg['width'] = 400
     loginReg.resizable(0, 0)  # 限制窗口大小
 
+    global entryUserReg,entryPasswordReg
+    User = tkinter.StringVar()
+    User.set('')
+    Password = tkinter.StringVar()
+    Password.set('')
+    
     #用户名标签
     labelUserReg = tkinter.Label(loginReg,text="用户名:")
     labelUserReg.place(x=90, y=100, width=50,height=20)
-    entryUserReg = tkinter.Entry(loginReg, width=120, textvariable=user)
+    entryUserReg = tkinter.Entry(loginReg, width=120, textvariable=User)
     entryUserReg.place(x=145, y=95, width=150,height=30)
 
     #密码标签
@@ -117,20 +123,17 @@ def register():
     btnConfirmReg = tkinter.Button(loginReg, text='注册', command=registerConfirm)
     btnConfirmReg.place(x=132, y=217, width=150, height=30)
 
-    global userReg,passwordReg
-    userReg = entryUserReg.get()
-    passwordReg= entryPasswordReg.get()
-
     loginReg.mainloop()
 
 #提交注册信息
 def registerConfirm():
     global ID 
+    userReg = entryUserReg.get()
+    passwordReg= entryPasswordReg.get()
     cn.register_procedure(userReg,passwordReg)
     ID = cn.rcv_one()
     tkinter.messagebox.showerror('温馨提示', message='注册成功\n您的ID是: '+str(ID['receive']))
     loginReg.destroy()
-
 
 
 loginRoot.bind('<Return>', login)            # 回车绑定登录功能
