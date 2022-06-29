@@ -1,15 +1,17 @@
 # encoding: utf-8
-from collections import UserString
 import socket
 import threading
 import json  # json.dumps(some)打包   json.loads(some)解包
 import tkinter
 import tkinter.messagebox
 from tkinter.scrolledtext import ScrolledText
+from tkinter import filedialog
+from matplotlib.pyplot import text
 #import Client_Network as cn
 
 
 from pandas_datareader import test
+from soupsieve import select
 from sqlalchemy import true  # 导入多行文本框用到的包
 
 IP = ''
@@ -21,11 +23,10 @@ users = []  # 在线用户列表
 chat = '【群发】'  # 聊天对象, 默认为群聊
 
 
-
 #cn.connect_server() 初始化连接
 #cn.connect_file_rcv() 初始化连接
 
-
+"""
 # 登陆窗口
 loginRoot = tkinter.Tk()
 loginRoot.title('聊天室')
@@ -120,12 +121,13 @@ btnRegister = tkinter.Button(loginRoot, text='注册', command=register)
 btnRegister.place(x=132, y=250, width=150, height=30)
 
 #显示登录窗口
-loginRoot.mainloop()
+loginRoot.mainloop()"""
 
+#*************************************************************#
 
 #创建主页面
 root = tkinter.Tk()
-root.title("的网络聊天") #+user
+root.title(user) #+user
 root['height'] = 550
 root['width'] = 800
 root.resizable(0,0)
@@ -135,7 +137,7 @@ listboxFriend = tkinter.Listbox(root,height='20',bg='lightgrey',highlightbackgro
 listboxFriend.place(x=0,y=0,width=180,height=550)
 
 listboxFriend.delete(0,tkinter.END)
-for i in ['a','b','c','d','e']:
+for i in ['【群发】','a','b','c','d','e']:
     listboxFriend.insert(tkinter.END,i)
 
 def makeFriend(event):
@@ -158,7 +160,12 @@ showPopoutMenu(listboxFriend,menuFriend)
 a = tkinter.StringVar()
 a.set('')
 entryText = tkinter.Entry(root, bg='lightblue',textvariable=a)
-entryText.place(x=181, y=401, width=620, height=110)
+entryText.place(x=181, y=405, width=620, height=110)
+
+
+#创建消息窗口
+listbox = ScrolledText(root,relief="solid",bd=1)
+listbox.place(x=181,y=0,width=620,height=375)
 
 
 
@@ -210,14 +217,81 @@ def sendEmoji():
         b3.destroy()
         b4.destroy()
 
+
+
+selectFilePath = tkinter.StringVar()
+selectFilePath.set('')
+#选择文件
+def chooseFile():
+    global selectFilePath
+    selected_file_path = filedialog.askopenfilename()  # 使用askopenfilename函数选择单个文件
+    print(selected_file_path)
+    selectFilePath.set(selected_file_path)
+
 #发送文件
+def confirmFile():
+    fileRoot.destroy()
+    
+
 def sendFile():
-    pass
+    global fileRoot
+    fileRoot = tkinter.Toplevel()
+    fileRoot.title("选择文件")
+    fileRoot['height'] = 100
+    fileRoot['width'] = 500
+    fileRoot.resizable(0,0)
+    labelFile = tkinter.Label(fileRoot, text="请选择要发送的文件")
+    labelFile.place(x=5,y=10,height=20,width=200)
+    entryFile = tkinter.Entry(fileRoot,width=400, textvariable=selectFilePath)
+    entryFile.place(x=50,y=30,height=30,width=350)
+    btnFileChoose = tkinter.Button(fileRoot, text="选择文件",command=chooseFile)
+    btnFileChoose.place(x=410,y=25,height=40,width=70)
+    btnFileConfirm = tkinter.Button(fileRoot, text="确定",command=confirmFile)
+    btnFileConfirm.place(x=200,y=68,height=25,width=120)
+
+    fileRoot.mainloop()
+
 
 #发送图片
-def sendPicture():
-    pass
+def confirmPic():
+    picRoot.destroy()
+    
 
+def sendPicture():
+    global picRoot
+    picRoot = tkinter.Toplevel()
+    picRoot.title("选择图片")
+    picRoot['height'] = 100
+    picRoot['width'] = 500
+    picRoot.resizable(0,0)
+    labelPic = tkinter.Label(picRoot, text="请选择要发送的图片")
+    labelPic.place(x=5,y=10,height=20,width=200)
+    entryPic = tkinter.Entry(picRoot,width=400, textvariable=selectFilePath)
+    entryPic.place(x=50,y=30,height=30,width=350)
+    btnPicChoose = tkinter.Button(picRoot, text="选择图片",command=chooseFile)
+    btnPicChoose.place(x=410,y=25,height=40,width=70)
+    btnPicConfirm = tkinter.Button(picRoot, text="确定",command=confirmPic)
+    btnPicConfirm.place(x=200,y=68,height=25,width=120)
+
+    picRoot.mainloop()
+
+#私聊功能
+def private(*args):
+    global chat
+    # 获取点击的索引然后得到内容(用户名)
+    indexs = listboxFriend.curselection()
+    index = indexs[0]
+    if index >= 0:
+        chat = listboxFriend.get(index)
+        # 修改客户端名称
+        if chat == '【群发】':
+            root.title(user+'在群聊')
+            return
+    ti = user + '  -->  ' + chat
+    root.title(ti)
+
+# 在显示用户列表框上设置绑定事件
+listboxFriend.bind('<ButtonRelease-1>', private)
 
 p1 = tkinter.PhotoImage(file='media/emoji.png')
 p2 = tkinter.PhotoImage(file='media/file.png')
@@ -238,12 +312,23 @@ btnPicture = eBut = tkinter.Button(root,image=p3, command=sendPicture)
 btnPicture.place(x=243,y=374,width=30,height=30)
 
 #创建发送窗口
-def send():
-    print("kick your as")
+def send(*args):
+    # 没有添加的话发送信息时会提示没有聊天对象
+    users.append('【群发】')
+    print(chat)
+    if chat not in users:
+        tkinter.messagebox.showerror('温馨提示', message='没有聊天对象!')
+        return
+    if chat == user:
+        tkinter.messagebox.showerror('温馨提示', message='自己不能和自己进行对话!')
+        return
+    mes = entryText.get() + ':;' + user + ':;' + chat  # 添加聊天对象标记
+    #s.send(mes.encode())
+    a.set('')  # 发送后清空文本框
 
 btnSend = tkinter.Button(root, text='发送', command=send)
 btnSend.place(x=670, y=513, width=120, height=30)
-
+root.bind('<Return>', send)  # 绑定回车发送信息
 
 #显示主页面
 root.mainloop()
