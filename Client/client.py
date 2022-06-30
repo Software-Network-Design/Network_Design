@@ -1,4 +1,6 @@
 # encoding: utf-8
+from plistlib import UID
+from queue import Queue
 import socket
 import threading
 import json  # json.dumps(some)打包   json.loads(some)解包
@@ -13,15 +15,16 @@ from Client_Network import chat_socket, file_socket, rcv_size, file_rcv
 from pathlib import Path
 
 IP = ''
-ID = ''  # 用户ID
+ID = ''  # 用户
+uID = '' #用户ID
 PORT = ''
 user = ''
 listbox1 = ''  # 用于显示在线用户的列表框
 ii = 0  # 用于判断是开还是关闭列表框
 users = {}  # 在线用户列表
-chat = ''  # 聊天对象id, 默认为群聊
+chat = '000000'  # 聊天对象id, 默认为群聊
 f_s = 1  # 代表朋友和陌生人之间的分隔位置
-
+group_message_queue = Queue() #群聊信息
 
 # 连接服务器
 def connectS():
@@ -31,10 +34,11 @@ def connectS():
 
 # 登录按钮
 def login(*args):
-    global IP, user, data
+    global IP, user, data, uID
     # ~~~~~~~~~~~~~~客户端只需要服务器的ip，端口号是固定的~~~~~~~~~~~~~！！
     # IP= entryIP.get() # 获取IP
     user = entryUser.get()
+    uID = user
     password = entryPassword.get()
     cn.login_procedure(user,password)    # 建立验证
     data = cn.rcv_one()        # 接收服务器验证信息
@@ -84,12 +88,13 @@ def register():
 
 # 提交注册信息及注册响应
 def registerConfirm():
-    global ID 
+    global ID,uID
     userReg = entryUserReg.get()
     passwordReg= entryPasswordReg.get()
     cn.register_procedure(userReg,passwordReg)
     ID = cn.rcv_one()
-    tkinter.messagebox.showerror('温馨提示', message='注册成功\n您的ID是: '+str(ID['receive']))
+    uID = ID['revieve']
+    tkinter.messagebox.showerror('温馨提示', message='注册成功\n您的ID是: '+str(uID))
     loginReg.destroy()
 
 
@@ -189,6 +194,7 @@ def sendFile():
 
 # 确认发送文件
 def confirmFile():
+    sendFile()
     fileRoot.destroy()
 
 
@@ -236,22 +242,6 @@ def private(*args):
     root.title(ti)
 
 
-# 创建发送窗口
-def send(*args):
-    # 没有添加的话发送信息时会提示没有聊天对象
-    users.append('【群发】')
-    print(chat)
-    if chat not in users:
-        tkinter.messagebox.showerror('温馨提示', message='没有聊天对象!')
-        return
-    if chat == user:
-        tkinter.messagebox.showerror('温馨提示', message='自己不能和自己进行对话!')
-        return
-    mes = entryText.get() + ':;' + user + ':;' + chat  # 添加聊天对象标记
-    # s.send(mes.encode())
-    a.set('')  # 发送后清空文本框
-
-
 # 菜单栏函数
 def do_job():
     pass
@@ -292,65 +282,65 @@ def friendRequest(stranger):    # 来自名为stranger的人的好友请求
         return sta
 
 
-# 一对一聊天消息显示
-def one2one(sender, content):   # sender是发送者,content是发送内容
+# 一对一聊天消息显示(接收到的)
+def oneRevieve(sender, content, type):   # sender是发送者,content是发送内容,type是发送类型
     global listbox  # listbox是消息框,往里写消息
     if chat == sender: # chat是当前消息框的人的ID,如果正显示对应聊天窗口,则显示消息内容
-        if sender != ID['receive']: #如果不是我发送的
-            if type == 'message': # 如果是文字
-                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
-                listbox.insert(tkinter.END, content,'green')
-            elif type == 'pic': # 如果是图片
-                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
-                photo = PhotoImage(file=str(content))
-                listbox.image_create(tkinter.END, image=photo)
-            elif type == 'file': # 如果是文件
-                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
-                #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图
-                #listbox.image_create(tkinter.END, image=photo)
-        else:
-            if type == 'message': # 如果是文字
-                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'blue')
-                listbox.insert(tkinter.END, content,'green')
-            elif type == 'pic': # 如果是图片
-                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'blue')
-                photo = PhotoImage(file=str(content))
-                listbox.image_create(tkinter.END, image=photo)
-            elif type == 'file': # 如果是文件
-                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'blue')
-                #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图
-                #listbox.image_create(tkinter.END, image=photo)
-
+        if type == 'message': # 如果是文字
+            listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
+            listbox.insert(tkinter.END, content,'green')
+        elif type == 'pic': # 如果是图片
+            listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
+            photo = PhotoImage(file=str(content))
+            listbox.image_create(tkinter.END, image=photo)
+        elif type == 'file': # 如果是文件
+            listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
+            #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图,保存地址
+            #listbox.image_create(tkinter.END, image=photo)
+    elif sender == uID:
+        if type == 'message': # 如果是文字
+            listbox.insert(tkinter.END,"我"+':\n', 'blue')
+            listbox.insert(tkinter.END, content,'green')
+        elif type == 'pic': # 如果是图片
+            listbox.insert(tkinter.END,"我"+':\n', 'blue')
+            photo = PhotoImage(file=str(content))
+            listbox.image_create(tkinter.END, image=photo)
+        elif type == 'file': # 如果是文件
+            listbox.insert(tkinter.END,"我"+':\n', 'blue')
+            #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图,保存地址
+            #listbox.image_create(tkinter.END, image=photo)
 
 # 群聊消息展示(接收到的)
 def groupRecieve(sender,content,type):  # sender是正在聊天的人
     global listbox  # listbox是消息框,往里写消息
     if chat == "000000":     # chat是当前消息框的人的ID,如果正显示群聊窗口,则显示消息内容
-        if sender != ID['receive']: #如果不是我发送的
-            if type == 'message': # 如果是文字
-                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
-                listbox.insert(tkinter.END, content,'green')
-            elif type == 'pic': # 如果是图片
-                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
-                photo = PhotoImage(file=str(content))
-                listbox.image_create(tkinter.END, image=photo)
-            elif type == 'file': # 如果是文件
-                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
-                #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图
-                #listbox.image_create(tkinter.END, image=photo)
-        else:
-            if type == 'message': # 如果是文字
-                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'blue')
-                listbox.insert(tkinter.END, content,'green')
-            elif type == 'pic': # 如果是图片
-                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'blue')
-                photo = PhotoImage(file=str(content))
-                listbox.image_create(tkinter.END, image=photo)
-            elif type == 'file': # 如果是文件
-                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'blue')
-                #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图
-                #listbox.image_create(tkinter.END, image=photo)
+        if type == 'message': # 如果是文字
+            listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
+            listbox.insert(tkinter.END, content,'green')
+        elif type == 'pic': # 如果是图片
+            listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
+            photo = PhotoImage(file=str(content))
+            listbox.image_create(tkinter.END, image=photo)
+        elif type == 'file': # 如果是文件
+            listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
+            #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图
+            #listbox.image_create(tkinter.END, image=photo)
+    elif sender == uID:
+        if type == 'message': # 如果是文字
+            listbox.insert(tkinter.END,"我"+':\n', 'blue')
+            listbox.insert(tkinter.END, content,'green')
+        elif type == 'pic': # 如果是图片
+            listbox.insert(tkinter.END,"我"+':\n', 'blue')
+            photo = PhotoImage(file=str(content))
+            listbox.image_create(tkinter.END, image=photo)
+        elif type == 'file': # 如果是文件
+            listbox.insert(tkinter.END,"我"+':\n', 'blue')
+            #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图
+            #listbox.image_create(tkinter.END, image=photo)
 
+# 个人消息展示（我发送的）
+def oneSend(reciever, content, type):
+    pass
 
 
 # 聊天列表移除下线用户
@@ -386,6 +376,53 @@ def showList(users):
     for key in users.keys():
         listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
 
+# 创建发送
+def sendText():
+    # 没有添加的话发送信息时会提示没有聊天对象
+    print(chat)
+    """if chat not in users:
+        tkinter.messagebox.showerror('温馨提示', message='没有聊天对象!')
+        return"""
+    if chat != '000000': # 说明是私聊
+        # 发送
+        cn.send_dm(uID,chat,a,users)
+        listbox.insert(tkinter.END,str('我')+':\n', 'blue')
+        listbox.insert(tkinter.END, a,'blue')
+    else: # 说明是群聊
+        cn.send_group(uID,a,group_message_queue)
+        listbox.insert(tkinter.END,str('我')+':\n', 'blue')
+        listbox.insert(tkinter.END, a,'blue')
+    a.set('')  # 发送后清空文本框,a是文本框变量
+
+
+def sendFile():
+    print(chat)
+    if chat != '000000': # 说明是私聊
+        cn.send_file_procedure(uID,chat,selectFilePath,False)
+        listbox.insert(tkinter.END,str('我')+':\n', 'blue')
+        #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图,加文件地址
+        #listbox.image_create(tkinter.END, image=photo)
+    else: # 说明是群聊
+        cn.send_file_procedure(uID,'',selectFilePath,False)
+        listbox.insert(tkinter.END,str('我')+':\n', 'blue')
+        #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图,加文件地址
+        #listbox.image_create(tkinter.END, image=photo)
+
+def sendPicture():
+    print(chat)
+    if chat != '000000': # 说明是私聊
+        cn.send_file_procedure(uID,chat,selectFilePath,True)
+        listbox.insert(tkinter.END,str('我')+':\n', 'blue')
+        photo = PhotoImage(file=str(selectFilePath)) # 一会找一张文件的贴图,加文件地址
+        listbox.image_create(tkinter.END, image=photo)
+    else: # 说明是群聊
+        cn.send_file_procedure(uID,'',selectFilePath,True)
+        listbox.insert(tkinter.END,str('我')+':\n', 'blue')
+        photo = PhotoImage(file=str(selectFilePath)) # 一会找一张文件的贴图,加文件地址
+        listbox.image_create(tkinter.END, image=photo)
+
+
+
 # **********************Network******************************
 
 
@@ -400,13 +437,13 @@ def recv(user_dict, group_message_queue, my_id):
             sender = rcv_data['send']
             message = rcv_data['info']
             user_dict[sender].message_queue.put({'send': sender, 'message': message, 'type': 'message'})
-            one2one(sender, message)
+            oneRevieve(sender, message)
         # 群聊消息
         elif package_type == 4:
             sender = rcv_data['send']
             message = rcv_data['info']
             group_message_queue.put({'send': sender, 'message': message, 'type': 'message'})
-            one2group(sender, message)
+            groupRecieve(sender, message)
         # 用户下线
         elif package_type == 5:
             logout_user = rcv_data['sender']
@@ -610,9 +647,9 @@ btnPicture = eBut = tkinter.Button(root,image=p3, command=sendPicture)
 btnPicture.place(x=243,y=374,width=30,height=30)
 
 # 发送窗口相关
-btnSend = tkinter.Button(root, text='发送', command=send)
+btnSend = tkinter.Button(root, text='发送', command=sendText)
 btnSend.place(x=670, y=513, width=120, height=30)
-root.bind('<Return>', send)  # 绑定回车发送信息
+root.bind('<Return>', sendText)  # 绑定回车发送信息
 
 
 # 创建菜单栏
@@ -627,7 +664,6 @@ filemenu.add_command(label='退出', command=root.quit)# 退出
 
 editmenu = tkinter.Menu(menubar, tearoff=0)
 menubar.add_cascade(label='Edit', menu=editmenu)
-#editmenu.add_command(label='Cut', command=do_job)
 editmenu.add_command(label='Copy', command=do_job)
 editmenu.add_command(label='Paste', command=do_job)
 
