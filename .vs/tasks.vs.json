@@ -1,0 +1,15 @@
+{
+  "version": "0.2.1",
+  "tasks": [
+    {
+      "taskLabel": "任务-Network_Design",
+      "appliesTo": "/",
+      "type": "launch"
+    },
+    {
+      "taskLabel": "任务-Client_Network",
+      "appliesTo": "Client/Client_Network.py",
+      "type": "launch"
+    }
+  ]
+}
