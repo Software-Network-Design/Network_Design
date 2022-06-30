@@ -1,62 +1,43 @@
-import tkinter as tk
-from tkinter import filedialog
-
-<<<<<<< HEAD
-def acc():
-    global sta,cnt
-    sta = True
-    cnt=1
-    frRoot.destroy()
-    
-def turnDown():
-    global sta,cnt
-    sta = False
-    cnt=1
-    frRoot.destroy()
-
-def friendRequest(stranger):#来自名为stranger的人的好友请求
-    global sta,frRoot,cnt
-    sta = bool()
-    cnt = int()
-    frRoot = tkinter.Tkl()
-    frRoot.title("好友申请")
-    frRoot['height'] = 100
-    frRoot['width'] = 500
-    frRoot.resizable(0,0)
-    labelFr = tkinter.Label(frRoot, text=str(stranger)+"请求添加您为好友")
-    labelFr.place(x=5,y=10,height=20,width=200)
-    btnFr1 = tkinter.Button(frRoot, text="同意",command=acc)
-    btnFr1.place(x=120,y=68,height=25,width=120)
-    btnFr2 = tkinter.Button(frRoot, text="拒绝",command=turnDown)
-    btnFr2.place(x=260,y=68,height=25,width=120)
-    frRoot.mainloop() 
-    if cnt==1:
-        return sta
- 
+import tkinter
 
 
+#更改个人信息确认
+def ciConfirm():
+    ciRoot.destroy()
+    pass
 
-a = friendRequest("hdh")
-print(a)
-=======
+def changeName():
+    pass
 
-def select_file():
-    # 单个文件选择
-    selected_file_path = filedialog.askopenfilename()  # 使用askopenfilename函数选择单个文件
-    select_path.set(selected_file_path) 
+def changePassword():
+    pass
 
-root = tk.Tk()
-root.title("选择文件或文件夹，得到路径")
+#更改个人信息
+def changeInformation():
+    global ciRoot
+    ciRoot = tkinter.Tk()
+    ciRoot.title("更改个人信息")
+    ciRoot['height'] = 300
+    ciRoot['width'] = 400
+    ciRoot.resizable(0,0)
+    labelCi1 = tkinter.Label(ciRoot, text="请修改您的用户名:")
+    newName = tkinter.StringVar()
+    labelCi1.place(x=20,y=50,height=20,width=200)
+    entryCi1 = tkinter.Entry(ciRoot, width=220, textvariable=newName)
+    entryCi1.place(x=60,y=70,height=30,width=220)
+    labelCi2 = tkinter.Label(ciRoot, text="请修改您的密码:")
+    newPassword = tkinter.StringVar()
+    labelCi2.place(x=20,y=130,height=20,width=200)
+    entryCi2 = tkinter.Entry(ciRoot, width=220, textvariable=newPassword)
+    entryCi2.place(x=60,y=150,height=30,width=220)
+    btnci1 = tkinter.Button(ciRoot, text="修改用户名", command=changeName)
+    btnci1.place(x=300, y=72, height=25, width=75)
+    btnci2 = tkinter.Button(ciRoot, text="修改密码", command=changePassword)
+    btnci2.place(x=300, y=152, height=25, width=75)
+    btnci3 = tkinter.Button(ciRoot, text="完成", command=ciConfirm)
+    btnci3.place(x=140, y=220, height=35, width=120)
 
-# 初始化Entry控件的textvariable属性值
-select_path = tk.StringVar()
+    ciRoot.mainloop() 
 
-# 布局控件
-tk.Label(root, text="文件路径：").grid(column=0, row=0, rowspan=3)
-tk.Entry(root, textvariable = select_path).grid(column=1, row=0, rowspan=3)
-tk.Button(root, text="选择单个文件", command=select_file).grid(row=0, column=2)
+changeInformation()
 
-
-root.mainloop()
-
->>>>>>> 3470c5a1fa6233f0377e2fd06613661c8046a924
