@@ -9,7 +9,7 @@ import tkinter.messagebox
 from tkinter.scrolledtext import ScrolledText
 from tkinter import PhotoImage, filedialog
 from tkinter import filedialog
-import Contact
+from Contact import *
 import Client_Network as cn
 from Client_Network import chat_socket, file_socket, rcv_size, file_rcv
 from pathlib import Path
@@ -31,24 +31,6 @@ def connectS():
     cn.connect_server()
     ipRoot.destroy()
 
-
-# 登录按钮
-def login(*args):
-    global IP, user, data, uID
-    # ~~~~~~~~~~~~~~客户端只需要服务器的ip，端口号是固定的~~~~~~~~~~~~~！！
-    # IP= entryIP.get() # 获取IP
-    user = entryUser.get()
-    uID = user
-    password = entryPassword.get()
-    cn.login_procedure(user,password)    # 建立验证
-    data = cn.rcv_one()        # 接收服务器验证信息
-    print(data)
-    if data["info"]["success"] == "登录成功":
-        loginRoot.destroy()                  # 关闭窗口
-    elif data["info"]["success"] == "无此用户":
-        tkinter.messagebox.showerror('温馨提示', message='请先注册')
-    elif data["info"]["success"] == "密码错误":
-        tkinter.messagebox.showerror('温馨提示', message='密码错误，请重新输入')
 
 
 # 注册按钮绑定函数（注册窗口GUI)
@@ -283,7 +265,7 @@ def friendRequest(stranger):    # 来自名为stranger的人的好友请求
 
 
 # 一对一聊天消息显示(接收到的)
-def oneRevieve(sender, content, type):   # sender是发送者,content是发送内容,type是发送类型
+def oneRecieve(sender, content, type):   # sender是发送者,content是发送内容,type是发送类型
     global listbox  # listbox是消息框,往里写消息
     if chat == sender: # chat是当前消息框的人的ID,如果正显示对应聊天窗口,则显示消息内容
         if type == 'message': # 如果是文字
@@ -376,8 +358,9 @@ def showList(users):
     for key in users.keys():
         listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
 
+
 # 创建发送
-def sendText():
+def sendText(*args):
     # 没有添加的话发送信息时会提示没有聊天对象
     print(chat)
     """if chat not in users:
@@ -408,6 +391,7 @@ def sendFile():
         #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图,加文件地址
         #listbox.image_create(tkinter.END, image=photo)
 
+
 def sendPicture():
     print(chat)
     if chat != '000000': # 说明是私聊
@@ -421,9 +405,28 @@ def sendPicture():
         photo = PhotoImage(file=str(selectFilePath)) # 一会找一张文件的贴图,加文件地址
         listbox.image_create(tkinter.END, image=photo)
 
-
-
 # **********************Network******************************
+
+
+def init_user_list(user_dict, response_dict):
+    print("in func init_user_list")
+    stranger_list = response_dict['strangers']
+    print(response_dict)
+    stranger_count = len(stranger_list)
+    friend_list = response_dict['friends']
+    friend_count = len(friend_list)
+    for stranger in stranger_list:
+        name = stranger['user_name']
+        ID = stranger['user_id']
+        contact = Contact(name, ID, False)
+        user_dict[ID] = contact
+    for friend in friend_list:
+        name = friend['user_name']
+        ID = friend['user_id']
+        contact = Contact(name, ID, True)
+        user_dict[ID] = contact
+    print(user_dict)
+    return user_dict
 
 
 def recv(user_dict, group_message_queue, my_id):
@@ -437,13 +440,13 @@ def recv(user_dict, group_message_queue, my_id):
             sender = rcv_data['send']
             message = rcv_data['info']
             user_dict[sender].message_queue.put({'send': sender, 'message': message, 'type': 'message'})
-            oneRevieve(sender, message)
+            oneRecieve(sender, message, 'message')
         # 群聊消息
         elif package_type == 4:
             sender = rcv_data['send']
             message = rcv_data['info']
             group_message_queue.put({'send': sender, 'message': message, 'type': 'message'})
-            groupRecieve(sender, message)
+            groupRecieve(sender, message, 'message')
         # 用户下线
         elif package_type == 5:
             logout_user = rcv_data['sender']
@@ -471,6 +474,9 @@ def recv(user_dict, group_message_queue, my_id):
                 user_dict[friend_request_from].is_friend = True
             cn.friend_response(my_id, accept, friend_request_from)
         # 个人信息修改
+        elif package_type == 15:
+            pass
+            # TODO:显示修改成功
         elif package_type == 16:
             person_info = rcv_data['info']
             user_name = person_info['user_name']
@@ -479,7 +485,7 @@ def recv(user_dict, group_message_queue, my_id):
             showList(users)
 
 
-def file_recv(user_dict):
+def file_recv(user_dict, group_message_queue):
     print("in func file_recv")
     while True:
         rcv_buffer = file_socket.recv(rcv_size)
@@ -489,9 +495,16 @@ def file_recv(user_dict):
         # 发送文件
         if package_type == 6:
             if data['info'] == "开始发送":
+                # 实际上的文件接收过程
                 file_path = file_rcv(is_pic=False)
-                user_dict[sender_id].message_queue.put(
-                    {'send': sender_id, 'message': file_path, 'type': 'file'})
+                if data['receive'] == '':
+                    user_dict[sender_id].message_queue.put(
+                        {'send': sender_id, 'message': file_path, 'type': 'file'})
+                    oneRecieve(sender_id, file_path, 'file')
+                else:
+                    group_message_queue.put(
+                        {'send': sender_id, 'message': file_path, 'type': 'file'})
+                    groupRecieve(sender_id, file_path, 'file')
                 rcv_buffer = file_socket.recv(rcv_size)
                 data = json.loads(rcv_buffer.decode('utf-8'))
                 if data['type'] == 6 and data['info'] == "发送结束":
@@ -504,9 +517,14 @@ def file_recv(user_dict):
         elif package_type == 12:
             if data['info'] == "开始发送":
                 file_path = file_rcv(is_pic=True)
-                user_dict[sender_id].message_queue.put(
-                    {'send': sender_id, 'message': file_path, 'type': 'pic'})
-                # TODO:根据file_path将图片展示在文件中
+                if data['receive'] == '':
+                    user_dict[sender_id].message_queue.put(
+                        {'send': sender_id, 'message': file_path, 'type': 'pic'})
+                    oneRecieve(sender_id, file_path, 'pic')
+                else:
+                    group_message_queue.put(
+                        {'send': sender_id, 'message': file_path, 'type': 'pic'})
+                    groupRecieve(sender_id, file_path, 'pic')
                 rcv_buffer = file_socket.recv(rcv_size)
                 data = json.loads(rcv_buffer.decode('utf-8'))
                 if data['type'] == 12 and data['info'] == "发送结束":
@@ -515,6 +533,29 @@ def file_recv(user_dict):
                     print("结束异常")
             else:
                 print("wrong package type/info")
+
+# **********************login*************************
+
+
+# 登录按钮
+def login(*args):
+    global IP, user, data, uID, users
+    # ~~~~~~~~~~~~~~客户端只需要服务器的ip，端口号是固定的~~~~~~~~~~~~~！！
+    # IP= entryIP.get() # 获取IP
+    user = entryUser.get()
+    uID = user
+    password = entryPassword.get()
+    cn.login_procedure(user, password)    # 建立验证
+    data = cn.rcv_one()        # 接收服务器验证信息
+    print(data)
+    if data["info"]["success"] == "登录成功":
+        loginRoot.destroy()                  # 关闭窗口
+        cn.connect_file_rcv(uID)
+        users = init_user_list(users, data['info'])
+    elif data["info"]["success"] == "无此用户":
+        tkinter.messagebox.showerror('温馨提示', message='请先注册')
+    elif data["info"]["success"] == "密码错误":
+        tkinter.messagebox.showerror('温馨提示', message='密码错误，请重新输入')
 
 
 # ******************************** GUI **************************************#
@@ -591,9 +632,11 @@ root.resizable(0, 0)
 listboxFriend = tkinter.Listbox(root, height='20', bg='lightgrey', highlightbackground='white',yscrollcommand=True,font=('Times',24))
 listboxFriend.place(x=0, y=0, width=180, height=550)
 
-listboxFriend.delete(0, tkinter.END) # 这一段是随便填的，到时候可以直接用showList函数
-for i in ['【群发】|123','a|1234','b|2345','c|3456','d|4567','e|5678']:
-    listboxFriend.insert(tkinter.END, i)
+# listboxFriend.delete(0, tkinter.END) # 这一段是随便填的，到时候可以直接用showList函数
+# for i in ['【群发】|123','a|1234','b|2345','c|3456','d|4567','e|5678']:
+#     listboxFriend.insert(tkinter.END, i)
+
+showList(users)
 
 menuFriend = tkinter.Menu()     # 右键菜单
 menuFriend.add_cascade(label="添加好友")
