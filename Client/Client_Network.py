@@ -12,7 +12,8 @@ chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 file_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host = socket.gethostname()
 Chat_PORT = 3500
-Server_IP = '127.0.0.1'
+# Server_IP = '127.0.0.1'
+Server_IP = '192.168.0.165'
 File_PORT = 3600
 Sys_PORT = 3700
 send_2_server = ""
@@ -77,7 +78,7 @@ def send_dm(user_num, rcv_num, chat_message, user_list):
     data_str = json.dumps(temp_dict, ensure_ascii=False)
     chat_socket.send(data_str.encode('utf-8'))
     user_list[rcv_num].message_queue.put(
-        {'send': user_num, 'message': chat_message, 'type': 'message'})
+        {'sender': user_num, 'content': chat_message, 'type': 'message'})
 
 
 # 发送广播消息
@@ -90,7 +91,7 @@ def send_group(user_num, chat_message, group_message_queue):
     data_str = json.dumps(temp_dict, ensure_ascii=False)
     chat_socket.send(data_str.encode('utf-8'))
     group_message_queue.put(
-        {'send': user_num, 'message': chat_message, 'type': 'message'})
+        {'sender': user_num, 'content': chat_message, 'type': 'message'})
 
 
 # 发送文件
@@ -202,7 +203,7 @@ def file_rcv(is_pic):
                 continue
             file.write(data)
         file_socket.settimeout(None)
-        actual_size = os.stat(file_path).st_size
+        actual_size = file.tell()
         if int(file_size) != actual_size:
             print("file damaged")
     return file_path
