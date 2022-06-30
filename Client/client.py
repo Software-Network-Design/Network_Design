@@ -182,7 +182,7 @@ def confirmFile():
 
 
 # 发送图片
-def sendPicture():
+def sendPicture_GUI():
     global picRoot
     picRoot = tkinter.Toplevel()
     picRoot.title("选择图片")
@@ -205,6 +205,7 @@ def sendPicture():
 # 确认发送图片
 def confirmPic():
     picRoot.destroy()
+    sendPicture()
 
 
 # 获取当前聊天对象(包括群聊和私聊对象)
@@ -805,7 +806,7 @@ btnEmoji = eBut = tkinter.Button(root,image=p1, command=sendEmoji)
 btnEmoji.place(x=183,y=374,width=30,height=30)
 btnFile = eBut = tkinter.Button(root,image=p2, command=sendFile)
 btnFile.place(x=213,y=374,width=30,height=30)
-btnPicture = eBut = tkinter.Button(root,image=p3, command=sendPicture)
+btnPicture = eBut = tkinter.Button(root,image=p3, command=sendPicture_GUI)
 btnPicture.place(x=243,y=374,width=30,height=30)
 
 # 发送窗口相关
