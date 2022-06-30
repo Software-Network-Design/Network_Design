@@ -110,7 +110,7 @@ class chat_server(threading.Thread):
                                 strangers_num = 0
                                 #好友上线消息
                                 upline_message = {
-                                    'send': 'server',
+                                    'send': user_id,
                                     'receive': '',
                                     'type': 8,
                                     'info': {
@@ -308,17 +308,20 @@ class chat_server(threading.Thread):
                 # 群发消息
                 if type == 4 or type == 5 or type == 8:
                     print('群发消息')
+                    message = json.dumps(message, ensure_ascii=False)
+                    message = message.encode('utf-8')
                     for online_user in users:
                         if online_user[1] != send:
-                            message = json.dumps(message, ensure_ascii=False)
-                            online_user[0].send(message.encode('utf-8')) 
+                            
+                            online_user[0].send(message) 
                 # 私发消息
                 else:
                     print('私发消息')
+                    message = json.dumps(message, ensure_ascii=False)
+                    message = message.encode('utf-8')
                     for online_user in users:
                         if online_user[1] == receive:
-                            message = json.dumps(message, ensure_ascii=False)
-                            online_user[0].send(message.encode('utf-8'))
+                            online_user[0].send(message)
                 #sleep(1)
 
     # 用户离线后将其从users中删除

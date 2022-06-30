@@ -441,13 +441,13 @@ selectFilePath.set('')
 # 在显示用户列表框上设置绑定事件
 listboxFriend.bind('<ButtonRelease-1>', private)
 
-p1 = tkinter.PhotoImage(file='media/emoji.png')
-p2 = tkinter.PhotoImage(file='media/file.png')
-p3 = tkinter.PhotoImage(file='media/picture.png')
-p4 = tkinter.PhotoImage(file='media/e1.png')
-p5 = tkinter.PhotoImage(file='media/e2.png')
-p6 = tkinter.PhotoImage(file='media/e3.png')
-p7 = tkinter.PhotoImage(file='media/e4.png')
+p1 = tkinter.PhotoImage(file='../media/emoji.png')
+p2 = tkinter.PhotoImage(file='../media/file.png')
+p3 = tkinter.PhotoImage(file='../media/picture.png')
+p4 = tkinter.PhotoImage(file='../media/e1.png')
+p5 = tkinter.PhotoImage(file='../media/e2.png')
+p6 = tkinter.PhotoImage(file='../media/e3.png')
+p7 = tkinter.PhotoImage(file='../media/e4.png')
 dicEmoji = {'aa**': p1, 'bb**': p2, 'cc**': p3, 'dd**': p4}
 ee = 0  # 判断表情面板开关的标志
 
