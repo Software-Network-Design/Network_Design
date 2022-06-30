@@ -384,27 +384,72 @@ def sendFile():
     if chat != '000000': # 说明是私聊
         cn.send_file_procedure(uID,chat,selectFilePath,False)
         listbox.insert(tkinter.END,str('我')+':\n', 'blue')
-        #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图,加文件地址
-        #listbox.image_create(tkinter.END, image=photo)
+        photo = PhotoImage(file=str(Path('media')/'filePic.png')) # 文件的贴图
+        listbox.image_create(tkinter.END, image=photo)
+        listbox.insert(tkinter.END, "\n文件地址:"+str(selectFilePath)+'\n', 'grey')# 文件的地址
     else: # 说明是群聊
         cn.send_file_procedure(uID,'',selectFilePath,False)
         listbox.insert(tkinter.END,str('我')+':\n', 'blue')
-        #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图,加文件地址
-        #listbox.image_create(tkinter.END, image=photo)
-
+        photo = PhotoImage(file=str(Path('media')/'filePic.png')) # 文件的贴图
+        listbox.image_create(tkinter.END, image=photo)
+        listbox.insert(tkinter.END, "\n文件地址:"+str(selectFilePath)+'\n', 'grey')# 文件的地址
 
 def sendPicture():
     print(chat)
     if chat != '000000': # 说明是私聊
         cn.send_file_procedure(uID,chat,selectFilePath,True)
         listbox.insert(tkinter.END,str('我')+':\n', 'blue')
-        photo = PhotoImage(file=str(selectFilePath)) # 一会找一张文件的贴图,加文件地址
+        photo = PhotoImage(file=str(selectFilePath)) 
         listbox.image_create(tkinter.END, image=photo)
     else: # 说明是群聊
         cn.send_file_procedure(uID,'',selectFilePath,True)
         listbox.insert(tkinter.END,str('我')+':\n', 'blue')
-        photo = PhotoImage(file=str(selectFilePath)) # 一会找一张文件的贴图,加文件地址
+        photo = PhotoImage(file=str(selectFilePath)) 
         listbox.image_create(tkinter.END, image=photo)
+
+
+#更改个人信息确认
+def ciConfirm():
+    ciRoot.destroy()
+
+#弹窗确认成功
+def changeSuccess():
+    tkinter.messagebox.showerror('温馨提示', message='修改成功')
+
+#更改用户名
+def changeName():
+    cn.send_self_info(uID,1,str(newName.get()))
+
+#更改密码
+def changePassword():
+    cn.send_self_info(uID,0,str(newPassword.get()))
+
+#更改个人信息
+def changeInformation():
+    global ciRoot,newName,newPassword
+    ciRoot = tkinter.Toplevel()
+    ciRoot.title("更改个人信息")
+    ciRoot['height'] = 300
+    ciRoot['width'] = 400
+    ciRoot.resizable(0,0)
+    labelCi1 = tkinter.Label(ciRoot, text="请修改您的用户名:")
+    newName = tkinter.StringVar()
+    labelCi1.place(x=20,y=50,height=20,width=200)
+    entryCi1 = tkinter.Entry(ciRoot, width=220, textvariable=newName)
+    entryCi1.place(x=60,y=70,height=30,width=220)
+    labelCi2 = tkinter.Label(ciRoot, text="请修改您的密码:")
+    newPassword = tkinter.StringVar()
+    labelCi2.place(x=20,y=130,height=20,width=200)
+    entryCi2 = tkinter.Entry(ciRoot, width=220, textvariable=newPassword)
+    entryCi2.place(x=60,y=150,height=30,width=220)
+    btnci1 = tkinter.Button(ciRoot, text="修改用户名", command=changeName)
+    btnci1.place(x=300, y=72, height=25, width=75)
+    btnci2 = tkinter.Button(ciRoot, text="修改密码", command=changePassword)
+    btnci2.place(x=300, y=152, height=25, width=75)
+    btnci3 = tkinter.Button(ciRoot, text="完成", command=ciConfirm)
+    btnci3.place(x=140, y=220, height=35, width=120)
+
+    ciRoot.mainloop() 
 
 # **********************Network******************************
 
@@ -665,22 +710,24 @@ selectFilePath.set('')
 listboxFriend.bind('<ButtonRelease-1>', private)
 
 # MacOS
-# p1 = tkinter.PhotoImage(file='media/emoji.png')
-# p2 = tkinter.PhotoImage(file='media/file.png')
-# p3 = tkinter.PhotoImage(file='media/picture.png')
-# p4 = tkinter.PhotoImage(file='media/e1.png')
-# p5 = tkinter.PhotoImage(file='media/e2.png')
-# p6 = tkinter.PhotoImage(file='media/e3.png')
-# p7 = tkinter.PhotoImage(file='media/e4.png')
+p1 = tkinter.PhotoImage(file='media/emoji.png')
+p2 = tkinter.PhotoImage(file='media/file.png')
+p3 = tkinter.PhotoImage(file='media/picture.png')
+p4 = tkinter.PhotoImage(file='media/e1.png')
+p5 = tkinter.PhotoImage(file='media/e2.png')
+p6 = tkinter.PhotoImage(file='media/e3.png')
+p7 = tkinter.PhotoImage(file='media/e4.png')
+p8 = tkinter.PhotoImage(file='media/filePic.png')
 
 # Windows
-p1 = tkinter.PhotoImage(file=Path('../media/emoji.png'))
-p2 = tkinter.PhotoImage(file=Path('../media/file.png'))
-p3 = tkinter.PhotoImage(file=Path('../media/picture.png'))
-p4 = tkinter.PhotoImage(file=Path('../media/e1.png'))
-p5 = tkinter.PhotoImage(file=Path('../media/e2.png'))
-p6 = tkinter.PhotoImage(file=Path('../media/e3.png'))
-p7 = tkinter.PhotoImage(file=Path('../media/e4.png'))
+# p1 = tkinter.PhotoImage(file=Path('../media/emoji.png'))
+# p2 = tkinter.PhotoImage(file=Path('../media/file.png'))
+# p3 = tkinter.PhotoImage(file=Path('../media/picture.png'))
+# p4 = tkinter.PhotoImage(file=Path('../media/e1.png'))
+# p5 = tkinter.PhotoImage(file=Path('../media/e2.png'))
+# p6 = tkinter.PhotoImage(file=Path('../media/e3.png'))
+# p7 = tkinter.PhotoImage(file=Path('../media/e4.png'))
+# p8 = tkinter.PhotoImage(file=Path('../media/filePic.png')
 dicEmoji = {'aa**': p1, 'bb**': p2, 'cc**': p3, 'dd**': p4}
 ee = 0  # 判断表情面板开关的标志
 
@@ -713,10 +760,10 @@ menubar.add_cascade(label='Edit', menu=editmenu)
 editmenu.add_command(label='Copy', command=do_job)
 editmenu.add_command(label='Paste', command=do_job)
 
-"""minemenu = tkinter.Menu(menubar, tearoff=0)
+minemenu = tkinter.Menu(menubar, tearoff=0)
 menubar.add_cascade(label='mine', menu=minemenu)
 #editmenu.add_command(label='Cut', command=do_job)
-minemenu.add_command(label='好友申请', command=do_job)"""
+minemenu.add_command(label='更改个人信息', command=changeInformation)
 
 """submenu = tkinter.Menu(filemenu)
 filemenu.add_cascade(label='Import', menu=submenu, underline=0)
@@ -729,6 +776,7 @@ listbox.tag_config('red', foreground='red')
 listbox.tag_config('blue', foreground='blue')
 listbox.tag_config('green', foreground='green')
 listbox.tag_config('pink', foreground='pink')
+listbox.tag_config('grey',foreground='lightgrey')
 
 r = threading.Thread(target=recv)
 r.setDaemon(True)
