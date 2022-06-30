@@ -5,7 +5,7 @@ import json  # json.dumps(some)打包   json.loads(some)解包
 import tkinter
 import tkinter.messagebox
 from tkinter.scrolledtext import ScrolledText
-from tkinter import filedialog
+from tkinter import PhotoImage, filedialog
 import Client_Network as cn
 
 
@@ -289,24 +289,65 @@ def friendRequest(stranger):#来自名为stranger的人的好友请求
         return sta
 
 
-# 一对一聊天消息显示
-def one2one(sender, content):   # sender是发送者,content是发送内容
+# 一对一聊天消息显示(接收到的)
+def oneRecieve(sender, content, type):   # sender是发送者,content是发送内容,type是发送类型
     global listbox  # listbox是消息框,往里写消息
-    if chat == sender:     # chat是当前消息框的人的ID,如果正显示对应聊天窗口,则显示消息内容
-        if sender != ID['receive']: # 不是我发的
-            listbox.insert(tkinter.END, content,'green')
+    if chat == sender: # chat是当前消息框的人的ID,如果正显示对应聊天窗口,则显示消息内容
+        if sender != ID['receive']: #如果不是我发送的
+            if type == 'message': # 如果是文字
+                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
+                listbox.insert(tkinter.END, content,'green')
+            elif type == 'pic': # 如果是图片
+                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
+                photo = PhotoImage(file=str(content))
+                listbox.image_create(tkinter.END, image=photo)
+            elif type == 'file': # 如果是文件
+                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
+                #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图
+                #listbox.image_create(tkinter.END, image=photo)
         else:
-            listbox.insert(tkinter.END, content, 'blue' )
+            if type == 'message': # 如果是文字
+                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'blue')
+                listbox.insert(tkinter.END, content,'green')
+            elif type == 'pic': # 如果是图片
+                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'blue')
+                photo = PhotoImage(file=str(content))
+                listbox.image_create(tkinter.END, image=photo)
+            elif type == 'file': # 如果是文件
+                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'blue')
+                #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图
+                #listbox.image_create(tkinter.END, image=photo)
 
 
-# 群聊消息展示
-def one2group(sender,content):  # sender是正在聊天的人
+# 群聊消息展示(接收到的)
+def groupRecieve(sender,content,type):  # sender是正在聊天的人
     global listbox  # listbox是消息框,往里写消息
     if chat == "000000":     # chat是当前消息框的人的ID,如果正显示群聊窗口,则显示消息内容
-        if sender != ID['receive']:    # 不是我发的
-            listbox.insert(tkinter.END, content, 'green')
+        if sender != ID['receive']: #如果不是我发送的
+            if type == 'message': # 如果是文字
+                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
+                listbox.insert(tkinter.END, content,'green')
+            elif type == 'pic': # 如果是图片
+                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
+                photo = PhotoImage(file=str(content))
+                listbox.image_create(tkinter.END, image=photo)
+            elif type == 'file': # 如果是文件
+                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
+                #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图
+                #listbox.image_create(tkinter.END, image=photo)
         else:
-            listbox.insert(tkinter.END, content, 'blue')
+            if type == 'message': # 如果是文字
+                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'blue')
+                listbox.insert(tkinter.END, content,'green')
+            elif type == 'pic': # 如果是图片
+                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'blue')
+                photo = PhotoImage(file=str(content))
+                listbox.image_create(tkinter.END, image=photo)
+            elif type == 'file': # 如果是文件
+                listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'blue')
+                #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图
+                #listbox.image_create(tkinter.END, image=photo)
+
 
 
 # 聊天列表移除下线用户
@@ -328,8 +369,10 @@ def addList(login_user):
 
 
 # 聊天框里面显示图片
-def showPic(file_path):
+def showPic(file_path): # direction用于判断发送方向
     global listbox
+    photo = PhotoImage(file=str(file_path))
+    listbox.image_create(tkinter.END, image=photo)
 
 
 
