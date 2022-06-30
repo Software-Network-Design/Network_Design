@@ -5,7 +5,7 @@ import struct
 from queue import Queue
 from time import sleep
 import Contact
-import client as GUI
+# import client as GUI
 
 
 chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -212,9 +212,13 @@ def recv(user_dict, group_message_queue, my_id):
             if accept:
                 user_dict[friend_request_from].is_friend = True
             friend_response(my_id, accept, friend_request_from)
+        # 个人信息修改
         elif package_type == 16:
             person_info = data['info']
-            user_dict[person_info['user']]
+            user_name = person_info['user_name']
+            user_id = person_info['user_id']
+            user_dict[user_id].contact_name = user_name
+            # TODO: GUI更新用户列表
 
 
 # 接收文件
@@ -226,7 +230,8 @@ def file_rcv(is_pic):
         path = default_pic_path
     else:
         path = default_file_path
-    with open(path+file_name, 'wb') as file:
+    file_path = path+file_name
+    with open(file_path, 'wb') as file:
         flag = True
         while flag:
             # upload incomplete
@@ -238,9 +243,10 @@ def file_rcv(is_pic):
                 flag = False
                 continue
             file.write(data)
-    if is_pic:
-        # TODO:GUI在聊天框中显示
-        pass
+        actual_size = os.stat(file_path).st_size
+        if int(file_size) != actual_size:
+            print("file damaged")
+    return file_path
 
 
 def file_recv():
@@ -264,7 +270,8 @@ def file_recv():
         # 发送图片
         elif package_type == 12:
             if data['info'] == "开始发送":
-                file_rcv(is_pic=True)
+                file_path = file_rcv(is_pic=True)
+                # TODO:根据file_path将图片展示在文件中
                 rcv_buffer = file_socket.recv(rcv_size)
                 data = json.loads(rcv_buffer.decode('utf-8'))
                 if data['typr'] == 12 and data['info'] == "发送结束":
