@@ -222,6 +222,7 @@ def private(*args):
             return
     ti = user + '  -->  ' + users[chat].contact_name
     root.title(ti)
+    changePage()
 
 
 # 菜单栏函数
@@ -355,6 +356,9 @@ def showPic(file_path): # direction用于判断发送方向
 def showList(users):
     global listboxFriend
     listboxFriend.delete(0, tkinter.END)  # 清空列表
+    # 插入群聊
+    listboxFriend.insert(tkinter.END, '群聊|000000')
+    # 插入私聊
     for key in users.keys():
         listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
 
@@ -372,40 +376,88 @@ def sendText(*args):
         cn.send_dm(uID, chat, str(a.get()), users)
         listbox.insert(tkinter.END, str('我')+':\n', 'blue')
         listbox.insert(tkinter.END, str(a.get())+'\n', 'blue')
+        # 把发送消息加入队列
+        users[chat].message_queue.put({'sender':str(uID),'content':str(a.get()),'type':'message'})
     else: # 说明是群聊
         cn.send_group(uID, str(a.get()), group_message_queue)
         listbox.insert(tkinter.END, str('我')+':\n', 'blue')
         listbox.insert(tkinter.END, str(a.get())+'\n', 'blue')
+        # 把发送消息加入队列
+        group_message_queue.put({'sender':str(uID),'content':str(a.get()),'type':'message'})
     a.set('')  # 发送后清空文本框,a是文本框变量
 
 
 def sendFile():
     print(chat)
     if chat != '000000': # 说明是私聊
-        cn.send_file_procedure(uID,chat,selectFilePath,False)
+        cn.send_file_procedure(uID,chat,str(selectFilePath.get()),False)
         listbox.insert(tkinter.END,str('我')+':\n', 'blue')
         photo = PhotoImage(file=str(Path('media')/'filePic.png')) # 文件的贴图
         listbox.image_create(tkinter.END, image=photo)
-        listbox.insert(tkinter.END, "\n文件地址:"+str(selectFilePath)+'\n', 'grey')# 文件的地址
+        listbox.insert(tkinter.END, "\n文件地址:"+str(selectFilePath.get())+'\n', 'grey')# 文件的地址
+        # 把发送消息加入队列
+        users[chat].message_queue.put({'sender':str(uID),'content':str(selectFilePath.get()),'type':'message'})
     else: # 说明是群聊
-        cn.send_file_procedure(uID,'',selectFilePath,False)
+        cn.send_file_procedure(uID,'',str(selectFilePath.get()),False)
         listbox.insert(tkinter.END,str('我')+':\n', 'blue')
         photo = PhotoImage(file=str(Path('media')/'filePic.png')) # 文件的贴图
         listbox.image_create(tkinter.END, image=photo)
-        listbox.insert(tkinter.END, "\n文件地址:"+str(selectFilePath)+'\n', 'grey')# 文件的地址
+        listbox.insert(tkinter.END, "\n文件地址:"+str(selectFilePath.get())+'\n', 'grey')# 文件的地址
+        # 把发送消息加入队列
+        group_message_queue.put({'sender':str(uID),'content':str(selectFilePath.get()),'type':'message'})
 
 def sendPicture():
     print(chat)
     if chat != '000000': # 说明是私聊
-        cn.send_file_procedure(uID,chat,selectFilePath,True)
+        cn.send_file_procedure(uID,chat,str(selectFilePath.get()),True)
         listbox.insert(tkinter.END,str('我')+':\n', 'blue')
-        photo = PhotoImage(file=str(selectFilePath)) 
+        photo = PhotoImage(file=str(selectFilePath.get())) 
         listbox.image_create(tkinter.END, image=photo)
+        # 把发送消息加入队列
+        users[chat].message_queue.put({'sender':str(uID),'content':str(selectFilePath.get()),'type':'message'})
     else: # 说明是群聊
-        cn.send_file_procedure(uID,'',selectFilePath,True)
+        cn.send_file_procedure(uID,'',str(selectFilePath.get()),True)
         listbox.insert(tkinter.END,str('我')+':\n', 'blue')
-        photo = PhotoImage(file=str(selectFilePath)) 
+        photo = PhotoImage(file=str(selectFilePath.get())) 
         listbox.image_create(tkinter.END, image=photo)
+        # 把发送消息加入队列
+        group_message_queue.put({'sender':str(uID),'content':str(selectFilePath.get()),'type':'message'})
+
+
+#切换页面
+def changePage():
+    # 清空当前页面 
+    listbox.delete(0,tkinter.END)    
+    # 获取队列
+    if chat == '000000':    # 切换到群聊   
+        qt = group_message_queue #qt stands for QueueTemp lol
+    else:   # 切换到私聊
+        qt = users[chat].message_queue #qt stands for QueueTemp lol
+    # 开始显示
+    while not qt.empty():
+        item = qt.get()
+        if item['sender'] == uID: #如果这条消息是自己发的
+            listbox.insert(tkinter.END,str(item['sender'])+':\n', 'blue')
+            if item['sender'] == 'message':
+                listbox.insert(tkinter.END,str(item['message'])+':\n', 'blue')
+            elif item['sender'] == 'file':
+                photo = PhotoImage(file=str(Path('media')/'filePic.png')) # 文件的贴图
+                listbox.image_create(tkinter.END, image=photo)
+                listbox.insert(tkinter.END, "\n文件地址:"+str(selectFilePath.get())+'\n', 'grey')
+            else:
+                photo = PhotoImage(file=str(item['content'])) 
+                listbox.image_create(tkinter.END, image=photo)
+        else:
+            listbox.insert(tkinter.END,str(item['sender'])+':\n', 'green')
+            if item['sender'] == 'message':
+                listbox.insert(tkinter.END,str(item['message'])+':\n', 'green')
+            elif item['sender'] == 'file':
+                photo = PhotoImage(file=str(Path('media')/'filePic.png')) # 文件的贴图
+                listbox.image_create(tkinter.END, image=photo)
+                listbox.insert(tkinter.END, "\n文件地址:"+str(selectFilePath.get())+'\n', 'grey')
+            else:
+                photo = PhotoImage(file=str(item['content'])) 
+                listbox.image_create(tkinter.END, image=photo)
 
 
 #更改个人信息确认
@@ -727,7 +779,7 @@ p8 = tkinter.PhotoImage(file='media/filePic.png')
 # p5 = tkinter.PhotoImage(file=Path('../media/e2.png'))
 # p6 = tkinter.PhotoImage(file=Path('../media/e3.png'))
 # p7 = tkinter.PhotoImage(file=Path('../media/e4.png'))
-# p8 = tkinter.PhotoImage(file=Path('../media/filePic.png')
+# p8 = tkinter.PhotoImage(file=Path('../media/filePic.png'))
 dicEmoji = {'aa**': p1, 'bb**': p2, 'cc**': p3, 'dd**': p4}
 ee = 0  # 判断表情面板开关的标志
 
