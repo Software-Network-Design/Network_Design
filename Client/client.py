@@ -6,6 +6,8 @@ import tkinter
 import tkinter.messagebox
 from tkinter.scrolledtext import ScrolledText
 from tkinter import filedialog
+
+from matplotlib import use
 import Client_Network as cn
 
 
@@ -17,7 +19,7 @@ listbox1 = ''  # 用于显示在线用户的列表框
 ii = 0  # 用于判断是开还是关闭列表框
 users = []  # 在线用户列表
 chat = '【群发】'  # 聊天对象, 默认为群聊
-
+f_s = 1 #代表朋友和陌生人之间的分隔位置
 
 #cn.connect_server() 初始化连接
 #cn.connect_file_rcv() 初始化连接
@@ -442,17 +444,42 @@ def one2group(sender,content):#sender是正在聊天的人
             listbox.insert(tkinter.END, content, 'blue' )
 
 #聊天列表移除下线用户
-
+def removeList(logout_user):
+    global listboxFriend,users,f_s
+    users = users.remove(logout_user)
+    if(logout_user.friend == True): #如果下线的是朋友，朋友和陌生人之间的分隔位置减1
+        f_s -= 1
+    # 重新绘制聊天列表
+    listboxFriend.delete(0,tkinter.END) #清空列表
+    for item in users:
+        listboxFriend.insert(tkinter.END, item.contact_name)
 
 #聊天列表显示新上线用户
-
+def addList(login_user):
+    global listboxFriend,users,f_s
+    #判断新上线的用户是不是朋友，还是陌生人
+    if(login_user.friend == True):
+        users.insert(f_s,login_user)
+        f_s += 1
+    else:
+        users.append(login_user)
+    # 重新绘制聊天列表
+    listboxFriend.delete(0,tkinter.END) #清空列表
+    for item in users:
+        listboxFriend.insert(tkinter.END, item.contact_name)
 
 #聊天框里面显示图片
 
 
-#显示聊天列表
-def showList():
-    pass
+#显示聊天列表(第一个是群聊,然后是在线好友,然后是在线陌生人)
+def showList(friend_list, stranger_list):
+    global listboxFriend, users, f_s
+    f_s = len(friend_list) #代表朋友和陌生人之间的分隔位置
+    users = ["【群聊】"] #demonstare是要展示的列表
+    users.append(friend_list,stranger_list)
+    listboxFriend.delete(0,tkinter.END) #清空列表
+    for item in users:
+        listboxFriend.insert(tkinter.END, item.contact_name)
 
 
 #显示主页面
