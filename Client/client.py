@@ -270,10 +270,10 @@ def oneRecieve(sender, content, type):   # sender是发送者,content是发送�
     if chat == sender: # chat是当前消息框的人的ID,如果正显示对应聊天窗口,则显示消息内容
         if type == 'message': # 如果是文字
             listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
-            listbox.insert(tkinter.END, content,'green')
+            listbox.insert(tkinter.END, content+'\n','green')
         elif type == 'pic': # 如果是图片
             listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
-            photo = PhotoImage(file=str(content))
+            photo = PhotoImage(file=content)
             listbox.image_create(tkinter.END, image=photo)
         elif type == 'file': # 如果是文件
             listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
@@ -282,10 +282,10 @@ def oneRecieve(sender, content, type):   # sender是发送者,content是发送�
     elif sender == uID:
         if type == 'message': # 如果是文字
             listbox.insert(tkinter.END,"我"+':\n', 'blue')
-            listbox.insert(tkinter.END, content,'green')
+            listbox.insert(tkinter.END, content+'\n','green')
         elif type == 'pic': # 如果是图片
             listbox.insert(tkinter.END,"我"+':\n', 'blue')
-            photo = PhotoImage(file=str(content))
+            photo = PhotoImage(file=content)
             listbox.image_create(tkinter.END, image=photo)
         elif type == 'file': # 如果是文件
             listbox.insert(tkinter.END,"我"+':\n', 'blue')
@@ -298,10 +298,10 @@ def groupRecieve(sender,content,type):  # sender是正在聊天的人
     if chat == "000000":     # chat是当前消息框的人的ID,如果正显示群聊窗口,则显示消息内容
         if type == 'message': # 如果是文字
             listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
-            listbox.insert(tkinter.END, content,'green')
+            listbox.insert(tkinter.END, content+'\n', 'green')
         elif type == 'pic': # 如果是图片
             listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
-            photo = PhotoImage(file=str(content))
+            photo = PhotoImage(file=content)
             listbox.image_create(tkinter.END, image=photo)
         elif type == 'file': # 如果是文件
             listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
@@ -310,10 +310,10 @@ def groupRecieve(sender,content,type):  # sender是正在聊天的人
     elif sender == uID:
         if type == 'message': # 如果是文字
             listbox.insert(tkinter.END,"我"+':\n', 'blue')
-            listbox.insert(tkinter.END, content,'green')
+            listbox.insert(tkinter.END, content+'\n','green')
         elif type == 'pic': # 如果是图片
             listbox.insert(tkinter.END,"我"+':\n', 'blue')
-            photo = PhotoImage(file=str(content))
+            photo = PhotoImage(file=content)
             listbox.image_create(tkinter.END, image=photo)
         elif type == 'file': # 如果是文件
             listbox.insert(tkinter.END,"我"+':\n', 'blue')
@@ -368,13 +368,14 @@ def sendText(*args):
         return"""
     if chat != '000000': # 说明是私聊
         # 发送
-        cn.send_dm(uID,chat,a,users)
-        listbox.insert(tkinter.END,str('我')+':\n', 'blue')
-        listbox.insert(tkinter.END, a,'blue')
+        # TODO:a的类型不对，不是str
+        cn.send_dm(uID, chat, str(a.get()), users)
+        listbox.insert(tkinter.END, str('我')+':\n', 'blue')
+        listbox.insert(tkinter.END, str(a.get())+'\n', 'blue')
     else: # 说明是群聊
-        cn.send_group(uID,a,group_message_queue)
-        listbox.insert(tkinter.END,str('我')+':\n', 'blue')
-        listbox.insert(tkinter.END, a,'blue')
+        cn.send_group(uID, str(a.get()), group_message_queue)
+        listbox.insert(tkinter.END, str('我')+':\n', 'blue')
+        listbox.insert(tkinter.END, str(a.get())+'\n', 'blue')
     a.set('')  # 发送后清空文本框,a是文本框变量
 
 
@@ -429,17 +430,18 @@ def init_user_list(user_dict, response_dict):
     return user_dict
 
 
-def recv(user_dict, group_message_queue, my_id):
+def recv():
     while True:
         rcv_buffer = chat_socket.recv(rcv_size)
+        print(rcv_buffer)
         rcv_data = json.loads(rcv_buffer.decode('utf-8'))
-        print(rcv_data)
+        print(type(rcv_data), rcv_data)
         package_type = rcv_data['type']
         # 一对一聊天消息
         if package_type == 3:
             sender = rcv_data['send']
             message = rcv_data['info']
-            user_dict[sender].message_queue.put({'send': sender, 'message': message, 'type': 'message'})
+            users[sender].message_queue.put({'send': sender, 'message': message, 'type': 'message'})
             oneRecieve(sender, message, 'message')
         # 群聊消息
         elif package_type == 4:
@@ -449,9 +451,9 @@ def recv(user_dict, group_message_queue, my_id):
             groupRecieve(sender, message, 'message')
         # 用户下线
         elif package_type == 5:
-            logout_user = rcv_data['sender']
+            logout_user = rcv_data['send']
             try:
-                del user_dict[logout_user]
+                del users[logout_user]
                 removeList(logout_user)
             except Exception as e:
                 print(e)
@@ -464,15 +466,15 @@ def recv(user_dict, group_message_queue, my_id):
                 new_online = Contact(message['user_name'], message['user_id'], True)
             else:
                 new_online = Contact(message['user_name'], message['user_id'], False)
-            user_dict[message['user_id']] = new_online
+            users[message['user_id']] = new_online
             addList(user_id)
         # 接到好友邀请
         elif package_type == 9:
             friend_request_from = rcv_data['sender']
             accept = friendRequest(friend_request_from)
             if accept:
-                user_dict[friend_request_from].is_friend = True
-            cn.friend_response(my_id, accept, friend_request_from)
+                users[friend_request_from].is_friend = True
+            cn.friend_response(uID, accept, friend_request_from)
         # 个人信息修改
         elif package_type == 15:
             pass
@@ -481,58 +483,59 @@ def recv(user_dict, group_message_queue, my_id):
             person_info = rcv_data['info']
             user_name = person_info['user_name']
             user_id = person_info['user_id']
-            user_dict[user_id].contact_name = user_name
+            users[user_id].contact_name = user_name
             showList(users)
 
 
-def file_recv(user_dict, group_message_queue):
+def file_recv():
     print("in func file_recv")
-    while True:
-        rcv_buffer = file_socket.recv(rcv_size)
-        data = json.loads(rcv_buffer.decode('utf-8'))
-        package_type = data['type']
-        sender_id = data['send']
-        # 发送文件
-        if package_type == 6:
-            if data['info'] == "开始发送":
-                # 实际上的文件接收过程
-                file_path = file_rcv(is_pic=False)
-                if data['receive'] == '':
-                    user_dict[sender_id].message_queue.put(
-                        {'send': sender_id, 'message': file_path, 'type': 'file'})
-                    oneRecieve(sender_id, file_path, 'file')
-                else:
-                    group_message_queue.put(
-                        {'send': sender_id, 'message': file_path, 'type': 'file'})
-                    groupRecieve(sender_id, file_path, 'file')
-                rcv_buffer = file_socket.recv(rcv_size)
-                data = json.loads(rcv_buffer.decode('utf-8'))
-                if data['type'] == 6 and data['info'] == "发送结束":
-                    pass
-                else:
-                    print("结束异常")
+    # while True:
+    rcv_buffer = file_socket.recv(rcv_size)
+    print(rcv_buffer)
+    data = json.loads(rcv_buffer.decode('utf-8'))
+    package_type = data['type']
+    sender_id = data['send']
+    # 发送文件
+    if package_type == 6:
+        if data['info'] == "start sending":
+            # 实际上的文件接收过程
+            file_path = file_rcv(is_pic=False)
+            if data['receive'] == '':
+                users[sender_id].message_queue.put(
+                    {'send': sender_id, 'message': file_path, 'type': 'file'})
+                oneRecieve(sender_id, file_path, 'file')
             else:
-                print("wrong package type/info")
-        # 发送图片
-        elif package_type == 12:
-            if data['info'] == "开始发送":
-                file_path = file_rcv(is_pic=True)
-                if data['receive'] == '':
-                    user_dict[sender_id].message_queue.put(
-                        {'send': sender_id, 'message': file_path, 'type': 'pic'})
-                    oneRecieve(sender_id, file_path, 'pic')
-                else:
-                    group_message_queue.put(
-                        {'send': sender_id, 'message': file_path, 'type': 'pic'})
-                    groupRecieve(sender_id, file_path, 'pic')
-                rcv_buffer = file_socket.recv(rcv_size)
-                data = json.loads(rcv_buffer.decode('utf-8'))
-                if data['type'] == 12 and data['info'] == "发送结束":
-                    pass
-                else:
-                    print("结束异常")
+                group_message_queue.put(
+                    {'send': sender_id, 'message': file_path, 'type': 'file'})
+                groupRecieve(sender_id, file_path, 'file')
+            rcv_buffer = file_socket.recv(rcv_size)
+            data = json.loads(rcv_buffer.decode('utf-8'))
+            if data['type'] == 6 and data['info'] == "complete":
+                pass
             else:
-                print("wrong package type/info")
+                print("结束异常")
+        else:
+            print("wrong package type/info")
+    # 发送图片
+    elif package_type == 12:
+        if data['info'] == "start sending":
+            file_path = file_rcv(is_pic=True)
+            if data['receive'] == '':
+                users[sender_id].message_queue.put(
+                    {'send': sender_id, 'message': file_path, 'type': 'pic'})
+                oneRecieve(sender_id, file_path, 'pic')
+            else:
+                group_message_queue.put(
+                    {'send': sender_id, 'message': file_path, 'type': 'pic'})
+                groupRecieve(sender_id, file_path, 'pic')
+            rcv_buffer = file_socket.recv(rcv_size)
+            data = json.loads(rcv_buffer.decode('utf-8'))
+            if data['type'] == 12 and data['info'] == "complete":
+                pass
+            else:
+                print("结束异常")
+        else:
+            print("wrong package type/info")
 
 # **********************login*************************
 
@@ -727,5 +730,15 @@ listbox.tag_config('blue', foreground='blue')
 listbox.tag_config('green', foreground='green')
 listbox.tag_config('pink', foreground='pink')
 
+r = threading.Thread(target=recv)
+r.setDaemon(True)
+r.start()
+print("r started")
+
+fr = threading.Thread(target=file_recv)
+fr.start()
+print("fr started")
+
 # 显示主页面
 root.mainloop()
+

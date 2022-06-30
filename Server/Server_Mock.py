@@ -114,7 +114,7 @@ class chat_server(threading.Thread):
                                 strangers_num = 0
                                 #好友上线消息
                                 upline_message = {
-                                    'send': 'server',
+                                    'send': user_id,
                                     'receive': '',
                                     'type': 8,
                                     'info': {
