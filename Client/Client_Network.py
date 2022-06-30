@@ -34,9 +34,9 @@ def connect_server():
 
 
 # 连接文件服务器
-def connect_file_rcv():
-    global file_socket
+def connect_file_rcv(user_id):
     file_socket.connect((Server_IP, File_PORT))
+    file_socket.send(user_id.encode('utf-8'))
 
 
 # 发送注册消息
