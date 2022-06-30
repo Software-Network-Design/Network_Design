@@ -25,6 +25,10 @@ users = []
 lock = threading.Lock()      
 #用户-正在发送对象表
 send_receive = {}
+#用户接收文件锁
+receive_user_lock = {}
+#文件传输等待时间
+waitingTime = 30
 
 def register(user_name, user_pwd):
     id = str(random.randrange(100000000, 999999999))
@@ -46,7 +50,7 @@ def register(user_name, user_pwd):
 
 class chat_server(threading.Thread):
     # 定义为全局变量
-    global que, users, lock
+    global que, users, lock, receive_user_lock
     def __init__(self):
         threading.Thread.__init__(self)
         self.addr = (HOST, Chat_PORT)
@@ -161,6 +165,7 @@ class chat_server(threading.Thread):
                                 #message['info']['strangers']['strangers_num'] = strangers_num
                                 # 将该用户加入在线用户列表
                                 users.append((conn, user_id, user_name, addr)) 
+                                receive_user_lock[user_id] = (threading.Lock(),time.time())
                             # 密码错误
                             else:
                                 message['info']['success'] = '密码错误'
@@ -347,7 +352,7 @@ class chat_server(threading.Thread):
 
 class file_server(threading.Thread):
     # 定义为全局变量
-    global fileque, users, lock, send_receive
+    global fileque, users, lock, send_receive, receive_user_lock
     def __init__(self):
         threading.Thread.__init__(self)
         self.addr = (HOST, File_PORT)
@@ -358,17 +363,24 @@ class file_server(threading.Thread):
     # conn ——— socket
     def connect(self, conn, addr):
         try:
+            print("建立了文件连接！")
             while True:
                 request = conn.recv(1024)
                 if not request:
                     break
-                if(check_json_format(request)):
+                try:
                     request = request.decode('utf-8')
                     request = json.loads(request)
+                except:
+                    pass
+                finally:
+                    pass
+                if(isinstance(request,dict)):
 
                 # 处理之后接收到的各类型消息
                     # 图片或文件信息
                     if request['type'] == 6 or request['type'] == 12:
+                        
                         print('图片或文件信息')
                         # 登录请求返回消息
                         #message = {
@@ -380,8 +392,14 @@ class file_server(threading.Thread):
                         message = request
                         receive = request['receive']
                         send = request['send']
+                        if(request['info'] == '开始发送'):          #为接收客户端加锁
+                            receive_user_lock[receive][0].acquire()
+                            receive_user_lock[receive][1] = time.time()
+                        elif(request['info'] == '发送结束'):
+                            receive_user_lock[receive][0].release()
+                        send_receive[send] = receive
                         is_online = 0
-                        if receive_id == '':
+                        if receive == '':
                             group_send = 1
                         else:
                             group_send = 0
@@ -392,19 +410,36 @@ class file_server(threading.Thread):
                             print("用户不在线！")
                         elif(not group_send):
                             self.save_data(message)
-                            send_receive[send] = receive
+                            
                         else:
-                            send_receive[send] = receive
+                            
                             for online_user in users:
                                 message['receive'] = online_user[1]
                                 self.save_data(message)
                         self.save_data(message)
                     # 文件或图片内容
-                else:
+                elif(isinstance(request,str)):
+                    print("文件头信息")
                     send_id = 0 
                     #receive_conn = None
                     for online_user in users:
-                        if(conn == online_user[0]):
+                        if(addr[1]-1 == online_user[0].getpeername()[1]):
+                            send_id = online_user[1]
+                    receive_id = send_receive[send_id]
+                    request = request.encode('utf-8')
+                    message = {
+                        'send': send_id,
+                        'receive': receive_id,
+                        'info': request,
+                        'type':99
+                    }
+                    self.save_data(message)
+                else:
+                    print("文件碎片")
+                    send_id = 0 
+                    #receive_conn = None
+                    for online_user in users:
+                        if(addr[1]-1 == online_user[0].getpeername()[1]):
                             send_id = online_user[1]
                     receive_id = send_receive[send_id]
                     message = {
@@ -413,10 +448,10 @@ class file_server(threading.Thread):
                         'info': request,
                         'type':99
                     }
-                    self.save_data(request)
+                    self.save_data(message)
         # 断开连接
-        except:
-            pass
+        except Exception as e:
+            print("异常为：%s"%e)
         finally:
             conn.close()
             print('用户下线或服务器出错')
@@ -425,15 +460,15 @@ class file_server(threading.Thread):
     def save_data(self, message):
         lock.acquire()
         try:
-            que.put((message))
+            fileque.put((message))
         finally:
             lock.release()
 
     # 将队列中消息转发
     def send_data(self):
         while True:
-            if not que.empty():
-                message = que.get()
+            if not fileque.empty():
+                message = fileque.get()
                 send = message['send']
                 receive = message['receive']
                 info = message['info']
@@ -449,6 +484,13 @@ class file_server(threading.Thread):
                             online_user[0].send(message.encode('utf-8'))
 
             #sleep(1)
+    def check_time(self):
+        global receive_user_lock
+        global waitingTime
+        nowtime = time.time()
+        for key in receive_user_lock.keys():
+            if (nowtime - receive_user_lock[key][1] > waitingTime):
+                receive_user_lock[key][0].release
     
     def run(self):
         self.socket.bind((HOST, File_PORT))
@@ -456,6 +498,8 @@ class file_server(threading.Thread):
         print('文件服务器正在运行中...')
         q = threading.Thread(target=self.send_data)
         q.start()
+        c = threading.Thread(target=self.check_time)
+        c.start()
         while True:
             conn, addr = self.socket.accept()
             t = threading.Thread(target=self.connect, args=(conn, addr))

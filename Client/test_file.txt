@@ -1,0 +1,21 @@
+﻿    connect_server()
+    connect_file_rcv()
+
+
+    i = input("请输入程序序号")
+    if i == "1":
+        
+        login_procedure('u123', '123321')
+        rcv_one()
+        print("u123登陆成功")
+        file_path = '.\\media\\e1.png'
+        send_file_procedure('u123', 'u234', file_path, True)
+        while True:
+            a = 0
+    else:
+        login_procedure('u234', '123')
+        rcv_one()
+        print("u234登陆成功")
+        file_recv()
+
+    chat_socket.close()
