@@ -15,8 +15,8 @@ PORT = ''
 user = ''
 listbox1 = ''  # 用于显示在线用户的列表框
 ii = 0  # 用于判断是开还是关闭列表框
-users = []  # 在线用户列表
-chat = '【群发】'  # 聊天对象, 默认为群聊
+users = {}  # 在线用户列表
+chat = ''  # 聊天对象id, 默认为群聊
 f_s = 1 # 代表朋友和陌生人之间的分隔位置
 
 
@@ -223,12 +223,13 @@ def private(*args):
     print(indexs)
     index = indexs[0]
     if index >= 0:
-        chat = listboxFriend.get(index)
+        temp = listboxFriend.get(index)
+        chat = temp.split('|')[1]
         # 修改客户端名称
-        if chat == '【群发】':
+        if chat == '000000': #群聊id=000000
             root.title(user+'在群聊')
             return
-    ti = user + '  -->  ' + chat
+    ti = user + '  -->  ' + users[chat].contact_name
     root.title(ti)
 
 
@@ -301,7 +302,7 @@ def one2one(sender, content):   # sender是发送者,content是发送内容
 # 群聊消息展示
 def one2group(sender,content):  # sender是正在聊天的人
     global listbox  # listbox是消息框,往里写消息
-    if chat == "【群聊】":     # chat是当前消息框的人的ID,如果正显示群聊窗口,则显示消息内容
+    if chat == "000000":     # chat是当前消息框的人的ID,如果正显示群聊窗口,则显示消息内容
         if sender != ID['receive']:    # 不是我发的
             listbox.insert(tkinter.END, content, 'green')
         else:
@@ -310,45 +311,34 @@ def one2group(sender,content):  # sender是正在聊天的人
 
 # 聊天列表移除下线用户
 def removeList(logout_user):
-    global listboxFriend,users,f_s
-    users = users.remove(logout_user)
-    if logout_user.friend: # 如果下线的是朋友，朋友和陌生人之间的分隔位置减1
-        f_s -= 1
+    global listboxFriend
     # 重新绘制聊天列表
     listboxFriend.delete(0, tkinter.END) # 清空列表
-    for item in users:
-        listboxFriend.insert(tkinter.END, item.contact_name)
-
+    for key in users.keys():
+        listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
 
 # 聊天列表显示新上线用户
 def addList(login_user):
-    global listboxFriend,users,f_s
-    # 判断新上线的用户是不是朋友，还是陌生人
-    if login_user.friend:
-        users.insert(f_s, login_user)
-        f_s += 1
-    else:
-        users.append(login_user)
+    global listboxFriend
     # 重新绘制聊天列表
     listboxFriend.delete(0, tkinter.END) # 清空列表
-    for item in users:
-        listboxFriend.insert(tkinter.END, item.contact_name)
+    for key in users.keys():
+        listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
+    #弹窗
 
 
 # 聊天框里面显示图片
-def showPic():
+def showPic(file_path):
     global listbox
 
 
+
 # 显示聊天列表(第一个是群聊,然后是在线好友,然后是在线陌生人)
-def showList(friend_list, stranger_list):
-    global listboxFriend, users, f_s
-    f_s = len(friend_list) #代表朋友和陌生人之间的分隔位置
-    users = ["【群聊】"] #demonstare是要展示的列表
-    users.append(friend_list,stranger_list)
+def showList(users):
+    global listboxFriend
     listboxFriend.delete(0,tkinter.END) #清空列表
-    for item in users:
-        listboxFriend.insert(tkinter.END, item.contact_name)
+    for key in users.keys():
+        listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
 
 # ******************************** GUI **************************************#
 
@@ -425,7 +415,7 @@ listboxFriend = tkinter.Listbox(root,height='20',bg='lightgrey',highlightbackgro
 listboxFriend.place(x=0,y=0,width=180,height=550)
 
 listboxFriend.delete(0,tkinter.END) # 这一段是随便填的，到时候可以直接用showList函数
-for i in ['【群发】','a','b','c','d','e']:
+for i in ['【群发】|123','a|1234','b|2345','c|3456','d|4567','e|5678']:
     listboxFriend.insert(tkinter.END,i)
 
 menuFriend = tkinter.Menu() # 右键菜单
@@ -451,13 +441,13 @@ selectFilePath.set('')
 # 在显示用户列表框上设置绑定事件
 listboxFriend.bind('<ButtonRelease-1>', private)
 
-p1 = tkinter.PhotoImage(file='../media/emoji.png')
-p2 = tkinter.PhotoImage(file='../media/file.png')
-p3 = tkinter.PhotoImage(file='../media/picture.png')
-p4 = tkinter.PhotoImage(file='../media/e1.png')
-p5 = tkinter.PhotoImage(file='../media/e2.png')
-p6 = tkinter.PhotoImage(file='../media/e3.png')
-p7 = tkinter.PhotoImage(file='../media/e4.png')
+p1 = tkinter.PhotoImage(file='media/emoji.png')
+p2 = tkinter.PhotoImage(file='media/file.png')
+p3 = tkinter.PhotoImage(file='media/picture.png')
+p4 = tkinter.PhotoImage(file='media/e1.png')
+p5 = tkinter.PhotoImage(file='media/e2.png')
+p6 = tkinter.PhotoImage(file='media/e3.png')
+p7 = tkinter.PhotoImage(file='media/e4.png')
 dicEmoji = {'aa**': p1, 'bb**': p2, 'cc**': p3, 'dd**': p4}
 ee = 0  # 判断表情面板开关的标志
 
