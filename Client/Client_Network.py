@@ -5,7 +5,7 @@ import struct
 from queue import Queue
 from time import sleep
 import Contact
-# import client as GUI
+from pathlib import Path
 
 
 chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -17,8 +17,8 @@ File_PORT = 3600
 Sys_PORT = 3700
 send_2_server = ""
 rcv_size = 1024
-default_file_path = "../file_received/"
-default_pic_path = "../pic_received/"
+default_file_path = Path("../file_received/")
+default_pic_path = Path("../pic_received/")
 group_message_queue = Queue()
 
 
@@ -169,68 +169,17 @@ def send_self_info(user_num, select, info):
     chat_socket.send(data_str.encode('utf-8'))
 
 
-def recv(user_dict, group_message_queue, my_id):
-    while True:
-        rcv_buffer = chat_socket.recv(rcv_size)
-        data = json.loads(rcv_buffer.decode('utf-8'))
-        print(data)
-        package_type = data['type']
-        # 一对一聊天消息
-        if package_type == 3:
-            sender = data['send']
-            message = data['info']
-            user_dict[sender].message_queue.put({'send': sender, 'message': message})
-            # TODO: GUI如果正显示对应聊天窗口，显示消息内容
-        # 群聊消息
-        elif package_type == 4:
-            sender = data['send']
-            message = data['info']
-            group_message_queue.put({'send': sender, 'message': message})
-            # TODO: GUI如果正显示群聊窗口，显示消息内容
-        # 用户下线
-        elif package_type == 5:
-            logout_user = data['sender']
-            try:
-                del user_dict[logout_user]
-                # TODO:GUI聊天列表中移除下线用户
-            except Exception as e:
-                print(e)
-                print("logout fault")
-        # 用户上线
-        elif package_type == 8:
-            message = data['info']
-            if message['type'] == 'friend':
-                new_online = Contact(message['user_name'], message['user_id'], True)
-            else:
-                new_online = Contact(message['user_name'], message['user_id'], False)
-            user_dict[message['user_id']] = new_online
-            # TODO:GUI聊天列表中显示新上线用户
-        # 接到好友邀请
-        elif package_type == 9:
-            friend_request_from = data['sender']
-            accept = GUI.friendRequest(friend_request_from)
-            if accept:
-                user_dict[friend_request_from].is_friend = True
-            friend_response(my_id, accept, friend_request_from)
-        # 个人信息修改
-        elif package_type == 16:
-            person_info = data['info']
-            user_name = person_info['user_name']
-            user_id = person_info['user_id']
-            user_dict[user_id].contact_name = user_name
-            # TODO: GUI更新用户列表
-
-
 # 接收文件
 def file_rcv(is_pic):
     recv_data = file_socket.recv(rcv_size).decode('utf-8')
+    file_socket.settimeout(3)
     file_name, file_size = recv_data.split('|')
     received_size = 0
     if is_pic:
         path = default_pic_path
     else:
         path = default_file_path
-    file_path = path+file_name
+    file_path = path / file_name
     with open(file_path, 'wb') as file:
         flag = True
         while flag:
@@ -243,43 +192,11 @@ def file_rcv(is_pic):
                 flag = False
                 continue
             file.write(data)
+        file_socket.settimeout(None)
         actual_size = os.stat(file_path).st_size
         if int(file_size) != actual_size:
             print("file damaged")
     return file_path
-
-
-def file_recv():
-    print("in func file_recv")
-    while True:
-        rcv_buffer = file_socket.recv(rcv_size)
-        data = json.loads(rcv_buffer.decode('utf-8'))
-        package_type = data['type']
-        # 发送文件
-        if package_type == 6:
-            if data['info'] == "开始发送":
-                file_rcv(is_pic=False)
-                rcv_buffer = file_socket.recv(rcv_size)
-                data = json.loads(rcv_buffer.decode('utf-8'))
-                if data['type'] == 6 and data['info'] == "发送结束":
-                    pass
-                else:
-                    print("结束异常")
-            else:
-                print("wrong package type/info")
-        # 发送图片
-        elif package_type == 12:
-            if data['info'] == "开始发送":
-                file_path = file_rcv(is_pic=True)
-                # TODO:根据file_path将图片展示在文件中
-                rcv_buffer = file_socket.recv(rcv_size)
-                data = json.loads(rcv_buffer.decode('utf-8'))
-                if data['typr'] == 12 and data['info'] == "发送结束":
-                    pass
-                else:
-                    print("结束异常")
-            else:
-                print("wrong package type/info")
 
 
 def rcv_one():
@@ -301,12 +218,12 @@ def init_user_list(user_list, response_dict):
         name = stranger['user_name']
         ID = stranger['user_id']
         contact = Contact(name, ID, False)
-        user_list[name] = contact
+        user_list[ID] = contact
     for friend in friend_list:
         name = friend['user_name']
         ID = friend['user_id']
         contact = Contact(name, ID, True)
-        user_list[name] = contact
+        user_list[ID] = contact
     # TODO:GUI显示聊天列表
 
 

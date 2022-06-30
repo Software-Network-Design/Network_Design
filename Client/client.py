@@ -6,18 +6,21 @@ import tkinter
 import tkinter.messagebox
 from tkinter.scrolledtext import ScrolledText
 from tkinter import PhotoImage, filedialog
+from tkinter import filedialog
+import Contact
 import Client_Network as cn
-
+from Client_Network import chat_socket, file_socket, rcv_size, file_rcv
+from pathlib import Path
 
 IP = ''
-ID = '' #用户ID
+ID = ''  # 用户ID
 PORT = ''
 user = ''
 listbox1 = ''  # 用于显示在线用户的列表框
 ii = 0  # 用于判断是开还是关闭列表框
 users = {}  # 在线用户列表
 chat = ''  # 聊天对象id, 默认为群聊
-f_s = 1 # 代表朋友和陌生人之间的分隔位置
+f_s = 1  # 代表朋友和陌生人之间的分隔位置
 
 
 # 连接服务器
@@ -61,16 +64,16 @@ def register():
     Password.set('')
     
     # 用户名标签
-    labelUserReg = tkinter.Label(loginReg,text="用户名:")
-    labelUserReg.place(x=90, y=100, width=50,height=20)
+    labelUserReg = tkinter.Label(loginReg, text="用户名:")
+    labelUserReg.place(x=90, y=100, width=50, height=20)
     entryUserReg = tkinter.Entry(loginReg, width=120, textvariable=User)
-    entryUserReg.place(x=145, y=95, width=150,height=30)
+    entryUserReg.place(x=145, y=95, width=150, height=30)
 
     # 密码标签
-    labelPasswordReg = tkinter.Label(loginReg,text="密码:")
-    labelPasswordReg.place(x=98, y=140, width=50,height=20)
+    labelPasswordReg = tkinter.Label(loginReg, text="密码:")
+    labelPasswordReg.place(x=98, y=140, width=50, height=20)
     entryPasswordReg = tkinter.Entry(loginReg, width=120, textvariable=Password)
-    entryPasswordReg.place(x=144, y=135, width=150,height=30)
+    entryPasswordReg.place(x=144, y=135, width=150, height=30)
 
     # 注册按钮
     btnConfirmReg = tkinter.Button(loginReg, text='注册', command=registerConfirm)
@@ -173,13 +176,13 @@ def sendFile():
     fileRoot['width'] = 500
     fileRoot.resizable(0,0)
     labelFile = tkinter.Label(fileRoot, text="请选择要发送的文件")
-    labelFile.place(x=5,y=10,height=20,width=200)
-    entryFile = tkinter.Entry(fileRoot,width=400, textvariable=selectFilePath)
-    entryFile.place(x=50,y=30,height=30,width=350)
-    btnFileChoose = tkinter.Button(fileRoot, text="选择文件",command=chooseFile)
-    btnFileChoose.place(x=410,y=25,height=40,width=70)
-    btnFileConfirm = tkinter.Button(fileRoot, text="确定",command=confirmFile)
-    btnFileConfirm.place(x=200,y=68,height=25,width=120)
+    labelFile.place(x=5, y=10, height=20, width=200)
+    entryFile = tkinter.Entry(fileRoot, width=400, textvariable=selectFilePath)
+    entryFile.place(x=50, y=30, height=30, width=350)
+    btnFileChoose = tkinter.Button(fileRoot, text="选择文件", command=chooseFile)
+    btnFileChoose.place(x=410, y=25, height=40, width=70)
+    btnFileConfirm = tkinter.Button(fileRoot, text="确定", command=confirmFile)
+    btnFileConfirm.place(x=200, y=68, height=25, width=120)
 
     fileRoot.mainloop()
 
@@ -196,15 +199,15 @@ def sendPicture():
     picRoot.title("选择图片")
     picRoot['height'] = 100
     picRoot['width'] = 500
-    picRoot.resizable(0,0)
+    picRoot.resizable(0, 0)
     labelPic = tkinter.Label(picRoot, text="请选择要发送的图片")
-    labelPic.place(x=5,y=10,height=20,width=200)
-    entryPic = tkinter.Entry(picRoot,width=400, textvariable=selectFilePath)
-    entryPic.place(x=50,y=30,height=30,width=350)
-    btnPicChoose = tkinter.Button(picRoot, text="选择图片",command=chooseFile)
-    btnPicChoose.place(x=410,y=25,height=40,width=70)
-    btnPicConfirm = tkinter.Button(picRoot, text="确定",command=confirmPic)
-    btnPicConfirm.place(x=200,y=68,height=25,width=120)
+    labelPic.place(x=5, y=10, height=20, width=200)
+    entryPic = tkinter.Entry(picRoot, width=400, textvariable=selectFilePath)
+    entryPic.place(x=50, y=30, height=30, width=350)
+    btnPicChoose = tkinter.Button(picRoot, text="选择图片", command=chooseFile)
+    btnPicChoose.place(x=410, y=25, height=40, width=70)
+    btnPicConfirm = tkinter.Button(picRoot, text="确定", command=confirmPic)
+    btnPicConfirm.place(x=200, y=68, height=25, width=120)
 
     picRoot.mainloop()
 
@@ -226,7 +229,7 @@ def private(*args):
         temp = listboxFriend.get(index)
         chat = temp.split('|')[1]
         # 修改客户端名称
-        if chat == '000000': #群聊id=000000
+        if chat == '000000':  # 群聊id=000000
             root.title(user+'在群聊')
             return
     ti = user + '  -->  ' + users[chat].contact_name
@@ -258,18 +261,18 @@ def do_job():
 def acc(): # 同意好友请求
     global sta, cnt
     sta = True
-    cnt=1
+    cnt = 1
     frRoot.destroy()
 
 
-def turnDown(): #拒绝好友请求
-    global sta,cnt
+def turnDown():     # 拒绝好友请求
+    global sta, cnt
     sta = False
-    cnt=1
+    cnt = 1
     frRoot.destroy()
 
 
-def friendRequest(stranger):#来自名为stranger的人的好友请求
+def friendRequest(stranger):    # 来自名为stranger的人的好友请求
     global sta,frRoot,cnt
     sta = bool()
     cnt = int()
@@ -277,20 +280,20 @@ def friendRequest(stranger):#来自名为stranger的人的好友请求
     frRoot.title("好友申请")
     frRoot['height'] = 100
     frRoot['width'] = 500
-    frRoot.resizable(0,0)
+    frRoot.resizable(0, 0)
     labelFr = tkinter.Label(frRoot, text=str(stranger)+"请求添加您为好友")
-    labelFr.place(x=5,y=10,height=20,width=200)
-    btnFr1 = tkinter.Button(frRoot, text="同意",command=acc)
-    btnFr1.place(x=120,y=68,height=25,width=120)
-    btnFr2 = tkinter.Button(frRoot, text="拒绝",command=turnDown)
-    btnFr2.place(x=260,y=68,height=25,width=120)
+    labelFr.place(x=5, y=10, height=20, width=200)
+    btnFr1 = tkinter.Button(frRoot, text="同意", command=acc)
+    btnFr1.place(x=120, y=68, height=25, width=120)
+    btnFr2 = tkinter.Button(frRoot, text="拒绝", command=turnDown)
+    btnFr2.place(x=260, y=68, height=25, width=120)
     frRoot.mainloop() 
-    if cnt==1:
+    if cnt == 1:
         return sta
 
 
-# 一对一聊天消息显示(接收到的)
-def oneRecieve(sender, content, type):   # sender是发送者,content是发送内容,type是发送类型
+# 一对一聊天消息显示
+def one2one(sender, content):   # sender是发送者,content是发送内容
     global listbox  # listbox是消息框,往里写消息
     if chat == sender: # chat是当前消息框的人的ID,如果正显示对应聊天窗口,则显示消息内容
         if sender != ID['receive']: #如果不是我发送的
@@ -354,18 +357,19 @@ def groupRecieve(sender,content,type):  # sender是正在聊天的人
 def removeList(logout_user):
     global listboxFriend
     # 重新绘制聊天列表
-    listboxFriend.delete(0, tkinter.END) # 清空列表
+    listboxFriend.delete(0, tkinter.END)    # 清空列表
     for key in users.keys():
         listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
+
 
 # 聊天列表显示新上线用户
 def addList(login_user):
     global listboxFriend
     # 重新绘制聊天列表
-    listboxFriend.delete(0, tkinter.END) # 清空列表
+    listboxFriend.delete(0, tkinter.END)     # 清空列表
     for key in users.keys():
         listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
-    #弹窗
+    # 弹窗
 
 
 # 聊天框里面显示图片
@@ -375,13 +379,106 @@ def showPic(file_path): # direction用于判断发送方向
     listbox.image_create(tkinter.END, image=photo)
 
 
-
 # 显示聊天列表(第一个是群聊,然后是在线好友,然后是在线陌生人)
 def showList(users):
     global listboxFriend
-    listboxFriend.delete(0,tkinter.END) #清空列表
+    listboxFriend.delete(0, tkinter.END)  # 清空列表
     for key in users.keys():
         listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
+
+# **********************Network******************************
+
+
+def recv(user_dict, group_message_queue, my_id):
+    while True:
+        rcv_buffer = chat_socket.recv(rcv_size)
+        rcv_data = json.loads(rcv_buffer.decode('utf-8'))
+        print(rcv_data)
+        package_type = rcv_data['type']
+        # 一对一聊天消息
+        if package_type == 3:
+            sender = rcv_data['send']
+            message = rcv_data['info']
+            user_dict[sender].message_queue.put({'send': sender, 'message': message, 'type': 'message'})
+            one2one(sender, message)
+        # 群聊消息
+        elif package_type == 4:
+            sender = rcv_data['send']
+            message = rcv_data['info']
+            group_message_queue.put({'send': sender, 'message': message, 'type': 'message'})
+            one2group(sender, message)
+        # 用户下线
+        elif package_type == 5:
+            logout_user = rcv_data['sender']
+            try:
+                del user_dict[logout_user]
+                removeList(logout_user)
+            except Exception as e:
+                print(e)
+                print("logout fault")
+        # 用户上线
+        elif package_type == 8:
+            message = rcv_data['info']
+            user_id = message['user_id']
+            if message['type'] == 'friend':
+                new_online = Contact(message['user_name'], message['user_id'], True)
+            else:
+                new_online = Contact(message['user_name'], message['user_id'], False)
+            user_dict[message['user_id']] = new_online
+            addList(user_id)
+        # 接到好友邀请
+        elif package_type == 9:
+            friend_request_from = rcv_data['sender']
+            accept = friendRequest(friend_request_from)
+            if accept:
+                user_dict[friend_request_from].is_friend = True
+            cn.friend_response(my_id, accept, friend_request_from)
+        # 个人信息修改
+        elif package_type == 16:
+            person_info = rcv_data['info']
+            user_name = person_info['user_name']
+            user_id = person_info['user_id']
+            user_dict[user_id].contact_name = user_name
+            showList(users)
+
+
+def file_recv(user_dict):
+    print("in func file_recv")
+    while True:
+        rcv_buffer = file_socket.recv(rcv_size)
+        data = json.loads(rcv_buffer.decode('utf-8'))
+        package_type = data['type']
+        sender_id = data['send']
+        # 发送文件
+        if package_type == 6:
+            if data['info'] == "开始发送":
+                file_path = file_rcv(is_pic=False)
+                user_dict[sender_id].message_queue.put(
+                    {'send': sender_id, 'message': file_path, 'type': 'file'})
+                rcv_buffer = file_socket.recv(rcv_size)
+                data = json.loads(rcv_buffer.decode('utf-8'))
+                if data['type'] == 6 and data['info'] == "发送结束":
+                    pass
+                else:
+                    print("结束异常")
+            else:
+                print("wrong package type/info")
+        # 发送图片
+        elif package_type == 12:
+            if data['info'] == "开始发送":
+                file_path = file_rcv(is_pic=True)
+                user_dict[sender_id].message_queue.put(
+                    {'send': sender_id, 'message': file_path, 'type': 'pic'})
+                # TODO:根据file_path将图片展示在文件中
+                rcv_buffer = file_socket.recv(rcv_size)
+                data = json.loads(rcv_buffer.decode('utf-8'))
+                if data['type'] == 12 and data['info'] == "发送结束":
+                    pass
+                else:
+                    print("结束异常")
+            else:
+                print("wrong package type/info")
+
 
 # ******************************** GUI **************************************#
 
@@ -389,7 +486,7 @@ def showList(users):
 ipRoot = tkinter.Tk()
 ipRoot.title('选择IP')
 ipRoot['height'] = 200
-ipRoot['width'] =  400
+ipRoot['width'] = 400
 ipRoot.resizable(0, 0)
 
 IP1 = tkinter.StringVar()
@@ -415,15 +512,15 @@ user.set('')
 password = tkinter.StringVar()
 password.set('')
 
-labelUser = tkinter.Label(loginRoot,text="用户ID:") # 用户名标签
-labelUser.place(x=86, y=100, width=50,height=20)
+labelUser = tkinter.Label(loginRoot, text="用户ID:")  # 用户名标签
+labelUser.place(x=86, y=100, width=50, height=20)
 entryUser = tkinter.Entry(loginRoot, width=120, textvariable=user)
-entryUser.place(x=145, y=95, width=150,height=30)
+entryUser.place(x=145, y=95, width=150, height=30)
 
-labelPassword = tkinter.Label(loginRoot,text="密码:") # 密码标签
-labelPassword.place(x=98, y=140, width=50,height=20)
+labelPassword = tkinter.Label(loginRoot, text="密码:")    # 密码标签
+labelPassword.place(x=98, y=140, width=50, height=20)
 entryPassword = tkinter.Entry(loginRoot, width=120, textvariable=password)
-entryPassword.place(x=144, y=135, width=150,height=30)
+entryPassword.place(x=144, y=135, width=150, height=30)
 
 """#服务器IP标签
 labelIP = tkinter.Label(loginRoot,text=" IP地址:")
@@ -448,35 +545,35 @@ loginRoot.mainloop()
 
 # 创建主页面
 root = tkinter.Tk()
-root.title(user) # +user
+root.title(user)    # +user
 root['height'] = 550
 root['width'] = 800
-root.resizable(0,0)
+root.resizable(0, 0)
 
 # 创建在线用户列表
-listboxFriend = tkinter.Listbox(root,height='20',bg='lightgrey',highlightbackground='white',yscrollcommand=True,font=('Times',24))
-listboxFriend.place(x=0,y=0,width=180,height=550)
+listboxFriend = tkinter.Listbox(root, height='20', bg='lightgrey', highlightbackground='white',yscrollcommand=True,font=('Times',24))
+listboxFriend.place(x=0, y=0, width=180, height=550)
 
-listboxFriend.delete(0,tkinter.END) # 这一段是随便填的，到时候可以直接用showList函数
+listboxFriend.delete(0, tkinter.END) # 这一段是随便填的，到时候可以直接用showList函数
 for i in ['【群发】|123','a|1234','b|2345','c|3456','d|4567','e|5678']:
-    listboxFriend.insert(tkinter.END,i)
+    listboxFriend.insert(tkinter.END, i)
 
-menuFriend = tkinter.Menu() # 右键菜单
+menuFriend = tkinter.Menu()     # 右键菜单
 menuFriend.add_cascade(label="添加好友")
 menuFriend.add_cascade(label="私聊")
-showPopoutMenu(listboxFriend,menuFriend)
+showPopoutMenu(listboxFriend, menuFriend)
 
 
 # 创建输入窗口
 a = tkinter.StringVar()
 a.set('')
-entryText = tkinter.Entry(root, bg='lightblue',textvariable=a)
+entryText = tkinter.Entry(root, bg='lightblue', textvariable=a)
 entryText.place(x=181, y=405, width=620, height=110)
 
 
 # 创建消息窗口
-listbox = ScrolledText(root,relief="solid",bd=1)
-listbox.place(x=181,y=0,width=620,height=375)
+listbox = ScrolledText(root, relief="solid", bd=1)
+listbox.place(x=181, y=0, width=620, height=375)
 
 selectFilePath = tkinter.StringVar()
 selectFilePath.set('')
@@ -484,13 +581,23 @@ selectFilePath.set('')
 # 在显示用户列表框上设置绑定事件
 listboxFriend.bind('<ButtonRelease-1>', private)
 
-p1 = tkinter.PhotoImage(file='media/emoji.png')
-p2 = tkinter.PhotoImage(file='media/file.png')
-p3 = tkinter.PhotoImage(file='media/picture.png')
-p4 = tkinter.PhotoImage(file='media/e1.png')
-p5 = tkinter.PhotoImage(file='media/e2.png')
-p6 = tkinter.PhotoImage(file='media/e3.png')
-p7 = tkinter.PhotoImage(file='media/e4.png')
+# MacOS
+# p1 = tkinter.PhotoImage(file='media/emoji.png')
+# p2 = tkinter.PhotoImage(file='media/file.png')
+# p3 = tkinter.PhotoImage(file='media/picture.png')
+# p4 = tkinter.PhotoImage(file='media/e1.png')
+# p5 = tkinter.PhotoImage(file='media/e2.png')
+# p6 = tkinter.PhotoImage(file='media/e3.png')
+# p7 = tkinter.PhotoImage(file='media/e4.png')
+
+# Windows
+p1 = tkinter.PhotoImage(file=Path('../media/emoji.png'))
+p2 = tkinter.PhotoImage(file=Path('../media/file.png'))
+p3 = tkinter.PhotoImage(file=Path('../media/picture.png'))
+p4 = tkinter.PhotoImage(file=Path('../media/e1.png'))
+p5 = tkinter.PhotoImage(file=Path('../media/e2.png'))
+p6 = tkinter.PhotoImage(file=Path('../media/e3.png'))
+p7 = tkinter.PhotoImage(file=Path('../media/e4.png'))
 dicEmoji = {'aa**': p1, 'bb**': p2, 'cc**': p3, 'dd**': p4}
 ee = 0  # 判断表情面板开关的标志
 
@@ -541,5 +648,5 @@ listbox.tag_config('blue', foreground='blue')
 listbox.tag_config('green', foreground='green')
 listbox.tag_config('pink', foreground='pink')
 
-#显示主页面
+# 显示主页面
 root.mainloop()
