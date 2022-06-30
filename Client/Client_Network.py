@@ -71,7 +71,8 @@ def send_dm(user_num, rcv_num, chat_message, user_list):
     temp_dict['info'] = chat_message
     data_str = json.dumps(temp_dict, ensure_ascii=False)
     chat_socket.send(data_str.encode('utf-8'))
-    user_list[rcv_num].message_queue.put({'send': user_num, 'message': chat_message})
+    user_list[rcv_num].message_queue.put(
+        {'send': user_num, 'message': chat_message, 'type': 'message'})
 
 
 # 发送广播消息
@@ -83,7 +84,8 @@ def send_group(user_num, chat_message, group_message_queue):
     temp_dict['info'] = chat_message
     data_str = json.dumps(temp_dict, ensure_ascii=False)
     chat_socket.send(data_str.encode('utf-8'))
-    group_message_queue.put()
+    group_message_queue.put(
+        {'send': user_num, 'message': chat_message, 'type': 'message'})
 
 
 # 发送文件
@@ -91,7 +93,9 @@ def send_file(file_path, send_socket):
     if os.path.isfile(file_path):
         file_name = os.path.basename(file_path)
         file_size = os.stat(file_path).st_size
+        sleep(0.1)
         send_socket.send((file_name + '|' + str(file_size)).encode('utf-8'))
+        sleep(0.1)
         with open(file_path, mode='rb') as fp:
             flag = True
             sent_size = 0
@@ -205,26 +209,6 @@ def rcv_one():
     data_str = json.loads(data_str.decode('utf-8'))
     print(data_str)
     return data_str
-
-
-# TODO: finish init_user_list
-def init_user_list(user_list, response_dict):
-    print("in func init_user_list")
-    stranger_list = response_dict['strangers']
-    stranger_count = len(stranger_list)
-    friend_list = response_dict['friends']
-    friend_count = len(friend_list)
-    for stranger in stranger_list:
-        name = stranger['user_name']
-        ID = stranger['user_id']
-        contact = Contact(name, ID, False)
-        user_list[ID] = contact
-    for friend in friend_list:
-        name = friend['user_name']
-        ID = friend['user_id']
-        contact = Contact(name, ID, True)
-        user_list[ID] = contact
-    # TODO:GUI显示聊天列表
 
 
 if __name__ == '__main__':
