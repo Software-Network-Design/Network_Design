@@ -77,8 +77,8 @@ def send_dm(user_num, rcv_num, chat_message, user_list):
     temp_dict['info'] = chat_message
     data_str = json.dumps(temp_dict, ensure_ascii=False)
     chat_socket.send(data_str.encode('utf-8'))
-    user_list[rcv_num].message_queue.put(
-        {'sender': user_num, 'content': chat_message, 'type': 'message'})
+    # user_list[rcv_num].message_queue.put(
+    #     {'sender': user_num, 'content': chat_message, 'type': 'message'})
 
 
 # 发送广播消息
@@ -90,8 +90,8 @@ def send_group(user_num, chat_message, group_message_queue):
     temp_dict['info'] = chat_message
     data_str = json.dumps(temp_dict, ensure_ascii=False)
     chat_socket.send(data_str.encode('utf-8'))
-    group_message_queue.put(
-        {'sender': user_num, 'content': chat_message, 'type': 'message'})
+    # group_message_queue.put(
+    #     {'sender': user_num, 'content': chat_message, 'type': 'message'})
 
 
 # 发送文件

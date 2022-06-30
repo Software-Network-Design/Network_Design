@@ -1,4 +1,5 @@
 # encoding: utf-8
+import copy
 from plistlib import UID
 from queue import Queue
 import socket
@@ -432,19 +433,22 @@ def changePage():
     print("in func changePage")
     # 清空当前页面 
     listbox.delete('1.0', tkinter.END)
+    global group_message_queue, users
     # 获取队列
     if chat == '000000':    # 切换到群聊   
-        qt = group_message_queue    #qt stands for QueueTemp lol
+        qt = group_message_queue    # qt stands for QueueTemp lol
     else:   # 切换到私聊
-        qt = users[chat].message_queue  #qt stands for QueueTemp lol
+        qt = users[chat].message_queue  # qt stands for QueueTemp lol
     # 开始显示
     print(qt.empty())
+    temp_queue = Queue()
     while not qt.empty():
         print("in while")
         item = qt.get()
+        temp_queue.put(item)
         print(item)
         if item['sender'] == uID: #如果这条消息是自己发的
-            listbox.insert(tkinter.END,str(item['sender'])+':\n', 'blue')
+            listbox.insert(tkinter.END, '我'+':\n', 'blue')
             if item['type'] == 'message':
                 listbox.insert(tkinter.END,str(item['content'])+':\n', 'blue')
             elif item['type'] == 'file':
@@ -456,7 +460,7 @@ def changePage():
                 photo = PhotoImage(file=str(item['content'])) 
                 listbox.image_create(tkinter.END, image=photo)
         else:
-            listbox.insert(tkinter.END,str(item['sender'])+':\n', 'green')
+            listbox.insert(tkinter.END, users[item['sender']].contact_name+':\n', 'green')
             if item['type'] == 'message':
                 listbox.insert(tkinter.END,str(item['content'])+':\n', 'green')
             elif item['type'] == 'file':
@@ -466,6 +470,10 @@ def changePage():
             else:
                 photo = PhotoImage(file=str(item['content'])) 
                 listbox.image_create(tkinter.END, image=photo)
+    if chat == '000000':    # 切换到群聊
+        group_message_queue = temp_queue
+    else:   # 切换到私聊
+        users[chat].message_queue = temp_queue
 
 
 #更改个人信息确认
@@ -851,3 +859,5 @@ print("fr started")
 # 显示主页面
 root.mainloop()
 
+chat_socket.close()
+file_socket.close()
