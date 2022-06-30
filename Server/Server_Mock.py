@@ -165,7 +165,7 @@ class chat_server(threading.Thread):
                                 #message['info']['strangers']['strangers_num'] = strangers_num
                                 # 将该用户加入在线用户列表
                                 users.append([conn, user_id, user_name, addr,'']) 
-                                receive_user_lock[user_id] = (threading.Lock(),time.time())
+                                receive_user_lock[user_id] = [threading.Lock(),time.time()]
                             # 密码错误
                             else:
                                 message['info']['success'] = '密码错误'
@@ -306,6 +306,7 @@ class chat_server(threading.Thread):
         while True:
             if not que.empty():
                 message = que.get()
+                
                 send = message['send']
                 receive = message['receive']
                 type = message['type']  
@@ -313,20 +314,17 @@ class chat_server(threading.Thread):
                 # 群发消息
                 if type == 4 or type == 5 or type == 8:
                     print('群发消息')
-                    message = json.dumps(message, ensure_ascii=False)
-                    message = message.encode('utf-8')
                     for online_user in users:
                         if online_user[1] != send:
-                            
-                            online_user[0].send(message) 
+                            message = json.dumps(message, ensure_ascii=False)
+                            online_user[0].send(message.encode('utf-8')) 
                 # 私发消息
                 else:
                     print('私发消息')
-                    message = json.dumps(message, ensure_ascii=False)
-                    message = message.encode('utf-8')
                     for online_user in users:
                         if online_user[1] == receive:
-                            online_user[0].send(message)
+                            message = json.dumps(message, ensure_ascii=False)
+                            online_user[0].send(message.encode('utf-8'))
                 #sleep(1)
 
     # 用户离线后将其从users中删除
@@ -371,7 +369,7 @@ class file_server(threading.Thread):
                 request = conn.recv(1024)
                 if not request:
                     break
-                
+                #print('现在接收的是' + str(request))
                 try:
                     request = request.decode('utf-8')
                     request = json.loads(request)
@@ -396,17 +394,22 @@ class file_server(threading.Thread):
                         message = request
                         receive = request['receive']
                         send = request['send']
-                        if(request['info'] == 'start sending'):          #为接收客户端加锁
+
+                        if receive == '':
+                            group_send = True
+                        else:
+                            group_send = False
+
+                        if(not group_send and request['info'] == 'start sending'):          #为接收客户端加锁
                             receive_user_lock[receive][0].acquire()
                             receive_user_lock[receive][1] = time.time()
-                        elif(request['info'] == 'complete'):
+                        elif(not group_send and request['info'] == 'complete'):
                             receive_user_lock[receive][0].release()
+
                         send_receive[send] = receive
                         is_online = 0
-                        if receive == '':
-                            group_send = 1
-                        else:
-                            group_send = 0
+                        
+
                         for online_user in users:
                             if online_user[1] == receive:
                                 is_online = 1
@@ -415,14 +418,24 @@ class file_server(threading.Thread):
                         elif(not group_send):
                             self.save_data(message)
                             
-                        else:
-                            
-                            for online_user in users:
-                                receive_user_lock[online_user[1]][0].acquire()
-                                receive_user_lock[online_user[1]][1] = time.time() + 3*waitingTime
-                                message['receive'] = online_user[1]
-                                self.save_data(message)
-                        self.save_data(message)
+                        else:   #群发
+                            if(request['info'] == 'start sending'):
+                                for online_user in users:
+                                    if(online_user[1] != send):
+                                        print("现在的id为:" + online_user[1])
+                                        receive_user_lock[online_user[1]][0].acquire()
+                                        receive_user_lock[online_user[1]][1] = time.time() + 3*waitingTime
+                                        send_message = message.copy()
+                                        send_message['receive'] = online_user[1]
+                                        print("存储时它是" + str(send_message))
+                                        self.save_data(send_message)
+                            elif(request['info'] == 'complete'):
+                                for online_user in users:
+                                    if(online_user[1] != send):
+                                        receive_user_lock[online_user[1]][0].release()
+                                        message['receive'] = online_user[1]
+                                        self.save_data(message)
+                        #self.save_data(message)
                     elif request['type'] == 1:
                         print("文件服务器登录信息")
                         user_id = request['send']
@@ -446,13 +459,20 @@ class file_server(threading.Thread):
                         'info': request,
                         'type':99
                     }
-                    self.save_data(message)
+                    if(receive_id == ''):
+                        for online_user in users:
+                            if(online_user[1] != send):
+                                send_message = message.copy()
+                                send_message['receive'] = online_user[1]
+                                self.save_data(send_message)
+                    else:
+                        self.save_data(message)
                 else:
                     print("文件碎片")
                     send_id = 0 
                     #receive_conn = None
                     for online_user in users:
-                        if(addr[1]-1 == online_user[0].getpeername()[1]):
+                        if(conn == online_user[4]):
                             send_id = online_user[1]
                     receive_id = send_receive[send_id]
                     message = {
@@ -461,7 +481,14 @@ class file_server(threading.Thread):
                         'info': request,
                         'type':99
                     }
-                    self.save_data(message)
+                    if(receive_id == ''):
+                        for online_user in users:
+                            if(online_user[1] != send):
+                                send_message = message.copy()
+                                send_message['receive'] = online_user[1]
+                                self.save_data(send_message)
+                    else:
+                        self.save_data(message)
         # 断开连接
         except Exception as e:
             print("异常为：%s"%e)
@@ -482,7 +509,7 @@ class file_server(threading.Thread):
         while True:
             if not fileque.empty():
                 message = fileque.get()
-                print(message)
+                print("函数转移后它是" + str(message))
                 send = message['send']
                 receive = message['receive']
                 info = message['info']
@@ -490,14 +517,16 @@ class file_server(threading.Thread):
                 if(type == 99):
                     for online_user in users:
                         if online_user[1] == receive:
+                            print('现在发送的是' + str(message))
                             online_user[4].send(info)
                 else:
-                    message = json.dumps(message, ensure_ascii=False)
-                    message = message.encode('utf-8')
                     for online_user in users:
                         if online_user[1] == receive:
-                            online_user[4].send(message)
-                            sleep(0.1)
+                            sleep(1)
+                            print('现在发送的是' + str(message))
+                            message = json.dumps(message, ensure_ascii=False)
+                            online_user[4].send(message.encode('utf-8'))
+                            sleep(1)
                             break
 
             #sleep(1)
