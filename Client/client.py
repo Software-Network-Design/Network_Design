@@ -359,7 +359,9 @@ def removeList(logout_user):
     listboxFriend.insert(tkinter.END, '群聊|000000')
     for key in users.keys():
         listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
-
+    # 弹窗显示好友下线
+    if users[logout_user].friend == True:
+        tkinter.messagebox.showinfo('温馨提示', message='您的好友'+str(users[logout_user].contact_name)+'已下线')
 
 # 聊天列表显示新上线用户
 def addList(login_user):
@@ -369,7 +371,9 @@ def addList(login_user):
     listboxFriend.insert(tkinter.END, '群聊|000000')
     for key in users.keys():
         listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
-    # 弹窗
+    # 弹窗显示好友上线
+    if users[login_user].friend == True:
+        tkinter.messagebox.showinfo('温馨提示', message='您的好友'+str(users[login_user].contact_name)+'已上线')
 
 
 
