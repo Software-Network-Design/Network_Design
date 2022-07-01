@@ -30,6 +30,8 @@ receive_user_lock = {}
 # 文件传输等待时间
 waitingTime = 10
 
+lock2 = threading.Lock()
+
 def register(user_name, user_pwd):
     id = str(random.randrange(100000000, 999999999))
     sql = "select * from User where user_id = '%s'" %(id)
@@ -123,8 +125,13 @@ class chat_server(threading.Thread):
                                         'type': ''
                                     }
                                 }
+                                print(users)
+                                
                                 for online_user in users:
+                                    print(user_id+' to '+online_user[1])
                                     upline_message['receive'] = online_user[1]
+                                    print('who received:')
+                                    print(upline_message['receive'])
                                     sql2 = "select * from User_Friends where (user1_id = '%s' and user2_id = '%s') or (user1_id = '%s' and user2_id = '%s')" %(user_id, online_user[1], online_user[1], user_id)
                                     cursor.execute(sql2)
                                     if_friends = cursor.fetchall()
@@ -159,6 +166,8 @@ class chat_server(threading.Thread):
                                         }
                                         message['info']['friends'].append(friend)
                                     # 发送上线消息
+                                    print('upline_message')
+                                    print(upline_message)
                                     self.save_data(upline_message)
                                 # 记录好友、陌生人数量    
                                 #message['info']['friends']['friends_num'] = friends_num
@@ -245,7 +254,6 @@ class chat_server(threading.Thread):
                             db.commit()
                             self.save_data(correct_message)
                             if select == 1:
-                                print("where is 16")
                                 modify_message = {
                                     'send': user_id,
                                     'receive': '',
@@ -305,30 +313,45 @@ class chat_server(threading.Thread):
     # 将队列中消息转发
     def send_data(self):
         while True:
+            lock2.acquire()
             if not que.empty():
                 message = que.get()
-                
+                #print('***********************')
+                #print(message)
                 send = message['send']
                 receive = message['receive']
                 type = message['type']  
-                print(message)      
+                #print('message') 
+                #print(message)
+                message1 = json.dumps(message, ensure_ascii=False)    
+                #print('message1') 
+                #print(message1)
+                message2 = message1.encode('utf-8')
+                #print('message2') 
+                #print(message2)
+                #print('receive')
+                #print(receive)
                 # 群发消息
-                if type == 4 or type == 5 or type == 8 or type == 16:
+                if type == 4 or type == 5 or type == 16:
                     print('群发消息')
-                    message = json.dumps(message, ensure_ascii=False)
-                    message = message.encode('utf-8')
+                    #all_message = json.dumps(message, ensure_ascii=False)
+                    #all_message = all_message.encode('utf-8')
                     for online_user in users:
                         if online_user[1] != send:
-                            online_user[0].send(message)
+                            online_user[0].send(message2)
                 # 私发消息
                 else:
                     print('私发消息')
-                    message = json.dumps(message, ensure_ascii=False)
-                    message = message.encode('utf-8')
                     for online_user in users:
                         if online_user[1] == receive:
-                            online_user[0].send(message)
+                            #print('online: '+online_user[1])
+                            #print('receive: '+receive)
+                            #print(online_user[0])
+                            #print('8-j')
+                            #print(json.loads(message2.decode('utf-8')))
+                            online_user[0].send(message2)
                 #sleep(1)
+            lock2.release()
 
     # 用户离线后将其从users中删除
     def delUser(self, conn):

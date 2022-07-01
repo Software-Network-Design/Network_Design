@@ -225,14 +225,11 @@ def rcv_one():
 if __name__ == '__main__':
     chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     connect_server()
-    login_procedure('u123', '12321')
+    login_procedure('u456', '112233')
     while True:
         data_str = chat_socket.recv(rcv_size)
+        data_str = json.loads(data_str.decode('utf-8'))
         print(data_str)
-        data_str1 = data_str.decode('utf-8')
-        print(data_str1)
-        data_str2 = json.loads(data_str1)
-        print(data_str2)
     # login_response = rcv_one()
     # login_success = login_response['info']['success']
     # if login_success == "登录成功":
