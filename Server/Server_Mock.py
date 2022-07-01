@@ -526,7 +526,7 @@ class file_server(threading.Thread):
                             online_user[4].send(info)
                 else:
                     isGroup = message['isGroup']
-                    if (isGroup):
+                    if isGroup:
                         message['receive'] = ''
                     message = json.dumps(message, ensure_ascii=False)
                     message = message.encode('utf-8')
