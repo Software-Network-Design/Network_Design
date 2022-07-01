@@ -129,7 +129,7 @@ def bb4():
     mark('dd**')
 
 
-def sendEmoji():
+def sendEmoji_():
     global b1, b2, b3, b4, ee
     if ee == 0:
         ee = 1
@@ -410,13 +410,13 @@ def showList(users):
 # 发送时贴表情
 def sendEmoji(content):
     if content == '/hj':
-        listbox.image_create(tkinter.END,dicEmoji['aa**'])
+        listbox.image_create(tkinter.END,image = p4)
     elif content == '/zm':
-        listbox.image_create(tkinter.END,dicEmoji['bb**'])
+        listbox.image_create(tkinter.END,image = p5)
     elif content == '/wl':
-        listbox.image_create(tkinter.END,dicEmoji['cc**'])
+        listbox.image_create(tkinter.END,image = p6)
     elif content == '/zn':
-        listbox.image_create(tkinter.END,dicEmoji['dd**'])
+        listbox.image_create(tkinter.END,image = p7)
     else:
         pass
 
@@ -442,7 +442,10 @@ def sendText(*args):
     else:  # 说明是群聊
         cn.send_group(uID, str(a.get()), group_message_queue)
         listbox.insert(tkinter.END, str('我')+':\n', 'blue')
-        listbox.insert(tkinter.END, str(a.get())+'\n', 'blue')
+        if str(a.get()) in ['/hj','/zm','/wl','/zn']:
+            sendEmoji(str(a.get()))
+        else:
+            listbox.insert(tkinter.END, str(a.get())+'\n', 'blue')
         # 把发送消息加入队列
         group_message_queue.put(
             {'sender': str(uID), 'content': str(a.get()), 'type': 'message'})
@@ -861,32 +864,32 @@ listboxFriend.bind('<ButtonRelease-1>', private)
 
 
 # MacOS
-# p1 = tkinter.PhotoImage(file='media/emoji.png')
-# p2 = tkinter.PhotoImage(file='media/file.png')
-# p3 = tkinter.PhotoImage(file='media/picture.png')
-# p4 = tkinter.PhotoImage(file='media/e1.png')
-# p5 = tkinter.PhotoImage(file='media/e2.png')
-# p6 = tkinter.PhotoImage(file='media/e3.png')
-# p7 = tkinter.PhotoImage(file='media/e4.png')
-# p8 = tkinter.PhotoImage(file='media/filePic.png')
+p1 = tkinter.PhotoImage(file='media/emoji.png')
+p2 = tkinter.PhotoImage(file='media/file.png')
+p3 = tkinter.PhotoImage(file='media/picture.png')
+p4 = tkinter.PhotoImage(file='media/e1.png')
+p5 = tkinter.PhotoImage(file='media/e2.png')
+p6 = tkinter.PhotoImage(file='media/e3.png')
+p7 = tkinter.PhotoImage(file='media/e4.png')
+p8 = tkinter.PhotoImage(file='media/filePic.png')
 
 # Windows
-p1 = tkinter.PhotoImage(file=Path('../media/emoji.png'))
-p2 = tkinter.PhotoImage(file=Path('../media/file.png'))
-p3 = tkinter.PhotoImage(file=Path('../media/picture.png'))
-p4 = tkinter.PhotoImage(file=Path('../media/e1.png'))
-p5 = tkinter.PhotoImage(file=Path('../media/e2.png'))
-p6 = tkinter.PhotoImage(file=Path('../media/e3.png'))
-p7 = tkinter.PhotoImage(file=Path('../media/e4.png'))
-p8 = tkinter.PhotoImage(file=Path('../media/filePic.png'))
+# p1 = tkinter.PhotoImage(file=Path('../media/emoji.png'))
+# p2 = tkinter.PhotoImage(file=Path('../media/file.png'))
+# p3 = tkinter.PhotoImage(file=Path('../media/picture.png'))
+# p4 = tkinter.PhotoImage(file=Path('../media/e1.png'))
+# p5 = tkinter.PhotoImage(file=Path('../media/e2.png'))
+# p6 = tkinter.PhotoImage(file=Path('../media/e3.png'))
+# p7 = tkinter.PhotoImage(file=Path('../media/e4.png'))
+# p8 = tkinter.PhotoImage(file=Path('../media/filePic.png'))
 dicEmoji = {'aa**': p4, 'bb**': p5, 'cc**': p6, 'dd**': p7}
 ee = 0  # 判断表情面板开关的标志
 
 # 路径问题
-file_pic = PhotoImage(file='../media/icons8-file-96.png')
+file_pic = PhotoImage(file='media/icons8-file-96.png')
 
 # 创建按钮
-btnEmoji = eBut = tkinter.Button(root,image=p1, command=sendEmoji)
+btnEmoji = eBut = tkinter.Button(root,image=p1, command=sendEmoji_)
 btnEmoji.place(x=183,y=374,width=30,height=30)
 btnFile = eBut = tkinter.Button(root,image=p2, command=sendFile_GUI)
 btnFile.place(x=213,y=374,width=30,height=30)
