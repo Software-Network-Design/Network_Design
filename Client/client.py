@@ -1,5 +1,6 @@
 # encoding: utf-8
 import copy
+from hashlib import new
 from plistlib import UID
 from queue import Queue
 import socket
@@ -30,9 +31,11 @@ group_message_queue = Queue() #群聊信息
 
 # 连接服务器
 def connectS():
+    global IP1
+    cn.Server_IP = str(IP1.get())
     cn.connect_server()
+    print(cn.Server_IP)
     ipRoot.destroy()
-
 
 
 # 注册按钮绑定函数（注册窗口GUI)
@@ -226,6 +229,7 @@ def private(*args):
             ti = user + '  -->  ' + users[chat].contact_name
             root.title(ti)
         changePage()
+        
 
 
 # 菜单栏函数
@@ -234,7 +238,10 @@ def do_job():
 
 #发送好友申请
 def friendRequestAdd():
-    cn.friend_request(uID,chat)
+    if users[chat].friend == True:
+        tkinter.messagebox.showerror('温馨提示', message='你们已经是好友,无需添加')
+    else:
+        cn.friend_request(uID,chat)
 
 
 # 接收好友申请
@@ -451,6 +458,9 @@ def sendPicture():
 
 #切换页面
 def changePage():
+    global newMessageFrom
+    newMessageFrom.set(' ') # 清空消息提醒
+    
     print("in func changePage")
     # 清空当前页面 
     listbox.delete('1.0', tkinter.END)
@@ -723,7 +733,7 @@ ipRoot['width'] = 400
 ipRoot.resizable(0, 0)
 
 IP1 = tkinter.StringVar()
-IP1.set('127.0.0.1')  # 默认显示的ip和端口
+IP1.set('192.168.0.165')  # 默认显示的ip和端口
 
 entry_ip = tkinter.Entry(ipRoot, width=120, textvariable=IP1)
 entry_ip.place(x=145, y=95, width=150, height=30)
@@ -809,6 +819,7 @@ entryText.place(x=181, y=405, width=620, height=110)
 # 创建消息窗口
 listbox = ScrolledText(root, relief="solid", bd=1)
 listbox.place(x=181, y=0, width=620, height=375)
+#listbox.configure(state='disabled')
 
 selectFilePath = tkinter.StringVar()
 selectFilePath.set('')
@@ -818,24 +829,24 @@ listboxFriend.bind('<ButtonRelease-1>', private)
 
 
 # MacOS
-# p1 = tkinter.PhotoImage(file='media/emoji.png')
-# p2 = tkinter.PhotoImage(file='media/file.png')
-# p3 = tkinter.PhotoImage(file='media/picture.png')
-# p4 = tkinter.PhotoImage(file='media/e1.png')
-# p5 = tkinter.PhotoImage(file='media/e2.png')
-# p6 = tkinter.PhotoImage(file='media/e3.png')
-# p7 = tkinter.PhotoImage(file='media/e4.png')
-# p8 = tkinter.PhotoImage(file='media/filePic.png')
+p1 = tkinter.PhotoImage(file='media/emoji.png')
+p2 = tkinter.PhotoImage(file='media/file.png')
+p3 = tkinter.PhotoImage(file='media/picture.png')
+p4 = tkinter.PhotoImage(file='media/e1.png')
+p5 = tkinter.PhotoImage(file='media/e2.png')
+p6 = tkinter.PhotoImage(file='media/e3.png')
+p7 = tkinter.PhotoImage(file='media/e4.png')
+p8 = tkinter.PhotoImage(file='media/filePic.png')
 
 # Windows
-p1 = tkinter.PhotoImage(file=Path('../media/emoji.png'))
-p2 = tkinter.PhotoImage(file=Path('../media/file.png'))
-p3 = tkinter.PhotoImage(file=Path('../media/picture.png'))
-p4 = tkinter.PhotoImage(file=Path('../media/e1.png'))
-p5 = tkinter.PhotoImage(file=Path('../media/e2.png'))
-p6 = tkinter.PhotoImage(file=Path('../media/e3.png'))
-p7 = tkinter.PhotoImage(file=Path('../media/e4.png'))
-p8 = tkinter.PhotoImage(file=Path('../media/filePic.png'))
+# p1 = tkinter.PhotoImage(file=Path('../media/emoji.png'))
+# p2 = tkinter.PhotoImage(file=Path('../media/file.png'))
+# p3 = tkinter.PhotoImage(file=Path('../media/picture.png'))
+# p4 = tkinter.PhotoImage(file=Path('../media/e1.png'))
+# p5 = tkinter.PhotoImage(file=Path('../media/e2.png'))
+# p6 = tkinter.PhotoImage(file=Path('../media/e3.png'))
+# p7 = tkinter.PhotoImage(file=Path('../media/e4.png'))
+# p8 = tkinter.PhotoImage(file=Path('../media/filePic.png'))
 dicEmoji = {'aa**': p1, 'bb**': p2, 'cc**': p3, 'dd**': p4}
 ee = 0  # 判断表情面板开关的标志
 
@@ -857,7 +868,7 @@ newMessageFrom = tkinter.StringVar()
 
 LabelNewMessage = tkinter.Entry(root,textvariable=newMessageFrom)
 LabelNewMessage.place(x=180,y=515, height=30,width=480)
-
+LabelNewMessage['state'] = 'readonly'
 
 
 # 创建菜单栏
