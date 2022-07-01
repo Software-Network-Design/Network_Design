@@ -1,23 +1,32 @@
 from pathlib import Path
-from queue import Queue
+from tkinter.scrolledtext import ScrolledText
+from tkinter import *
 
-#
-# path = Path('../file_received')
-#
-# path = path / "a.txt"
-#
-# with open(path, 'w') as file:
-#     print("success")
 
-temp_queue = Queue()
-for i in range(5):
-    temp_queue.put(i)
+def func():
+    global file_icon, text
+    text.image_create(END, image=file_icon)
 
-temp_queue2 = Queue()
 
-while not temp_queue.empty():
-    item = temp_queue.get()
-    temp_queue2.put(item)
-temp_queue = temp_queue2
+root = Tk()
+text = ScrolledText(root)
+text.insert(END, 'content'+'\n', 'green')
+# photo = PhotoImage(file='../media/e1.png')
+# text.image_create(END, image=photo)     # 用这个方法创建一 个 图片对象，并插入到“END"的位置
+# text.insert(END, '\ncontent'+'\n', 'green')
+# photo2 = PhotoImage(file='../media/e2.png')
+# text.image_create(END, image=photo2)
+# photo3 = PhotoImage(file='../media/e3.png')
+# text.image_create(END, image=photo3)
+# photo4 = PhotoImage(file='../media/e4.png')
+# text.image_create(END, image=photo4)
+file_icon = PhotoImage(file=str(Path('../media/icons8-file-96.png')))
+# file_icon = PhotoImage("D:\\University Courses\\Network_Design\\media\\icons8-file-96.png")
+text.image_create(END, image=file_icon)
+text.pack()
+text.mainloop()
+root.mainloop()
 
-print(temp_queue.empty())
+
+# file_pic = PhotoImage('../media/icons8-file-96.png')
+

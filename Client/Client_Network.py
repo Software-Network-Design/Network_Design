@@ -115,7 +115,7 @@ def send_file(file_path, send_socket):
                     sent_size += rcv_size
                 send_socket.send(data_str)
             fp.close()
-        sleep(0.1)
+        sleep(1)
 
 
 # 发送文件整个过程
@@ -198,8 +198,10 @@ def file_rcv(is_pic):
             # upload incomplete
             if int(file_size) > received_size:
                 data = file_socket.recv(rcv_size)
+                # print(data)
                 received_size += len(data)
             else:
+                print(received_size)
                 received_size = 0
                 flag = False
                 continue
