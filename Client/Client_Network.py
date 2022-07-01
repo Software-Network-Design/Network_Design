@@ -160,6 +160,7 @@ def friend_response(user_num, agree, apply_user_num):
     # 'agree' or 'reject'
     temp_dict['info'] = agree
     data_str = json.dumps(temp_dict, ensure_ascii=False)
+    print('friend_response:'+data_str)
     chat_socket.send(data_str.encode('utf-8'))
 
 

@@ -256,7 +256,7 @@ def friendRequestRecieve(stranger):    # 来自名为stranger的人的好友请�
     global sta,frRoot,cnt
     sta = bool()
     cnt = int()
-    frRoot = tkinter.Toplevel()
+    frRoot = tkinter.Tk()
     frRoot.title("好友申请")
     frRoot['height'] = 100
     frRoot['width'] = 500
@@ -267,7 +267,7 @@ def friendRequestRecieve(stranger):    # 来自名为stranger的人的好友请�
     btnFr1.place(x=120, y=68, height=25, width=120)
     btnFr2 = tkinter.Button(frRoot, text="拒绝", command=turnDown)
     btnFr2.place(x=260, y=68, height=25, width=120)
-    frRoot.mainloop() 
+    frRoot.mainloop()
     if cnt == 1:
         return sta
 
@@ -429,6 +429,7 @@ def sendFile():
         listbox.insert(tkinter.END, "\n文件地址:"+str(selectFilePath.get())+'\n', 'grey')# 文件的地址
         # 把发送消息加入队列
         group_message_queue.put({'sender':str(uID),'content':str(selectFilePath.get()),'type':'file'})
+
 
 def sendPicture():
     print(chat)
@@ -793,7 +794,7 @@ listboxFriend.place(x=0, y=0, width=180, height=550)
 showList(users)
 
 menuFriend = tkinter.Menu()     # 右键菜单
-menuFriend.add_cascade(label="添加好友")
+menuFriend.add_cascade(label="添加好友", command=friendRequestAdd)
 menuFriend.add_cascade(label="私聊")
 showPopoutMenu(listboxFriend, menuFriend)
 
