@@ -23,11 +23,11 @@ fileque = queue.Queue()
 users = []          
 # 创建锁, 防止多个线程写入数据的顺序打乱                     
 lock = threading.Lock()      
-#用户-正在发送对象表
+# 用户-正在发送对象表
 send_receive = {}
-#用户接收文件锁
+# 用户接收文件锁
 receive_user_lock = {}
-#文件传输等待时间
+# 文件传输等待时间
 waitingTime = 10
 
 def register(user_name, user_pwd):
