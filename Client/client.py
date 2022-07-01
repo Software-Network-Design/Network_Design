@@ -1,7 +1,7 @@
 # encoding: utf-8
 import copy
 from hashlib import new
-from plistlib import UID
+#from plistlib import UID
 from queue import Queue
 import socket
 import threading
@@ -29,6 +29,7 @@ chat = '000000'  # 聊天对象id, 默认为群聊
 f_s = 1  # 代表朋友和陌生人之间的分隔位置
 group_message_queue = Queue() #群聊信息
 group_pic_list = []
+new_message = {}
 
 
 # 连接服务器
@@ -286,6 +287,7 @@ def oneRecieve(sender, content, type):   # sender是发送者,content是发送�
     print("in func oneRecieve")
     global listbox, newMessageFrom  # listbox是消息框,往里写消息
     global file_pic
+    global new_message
     if chat == sender: # chat是当前消息框的人的ID,如果正显示对应聊天窗口,则显示消息内容
         if type == 'message': # 如果是文字
             listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
@@ -305,13 +307,20 @@ def oneRecieve(sender, content, type):   # sender是发送者,content是发送�
             # 文件的地址
             listbox.insert(tkinter.END, "文件地址:" + str(content) + '\n', 'grey')
     else: #显示新消息
-        newMessageFrom.set(str(users[sender].contact_name) + "发来了一条新消息")
+        if sender not in new_message:
+            new_message[sender] = 1
+        else:
+            old_num = new_message[sender]
+            del new_message[sender]
+            new_message[sender] = old_num + 1
+        newMessageFrom.set(str(users[sender].contact_name) + "：发来了"+str(new_message[sender])+"条新消息")
 
 
 # 群聊消息展示(接收到的)
 def groupRecieve(sender,content,type):  # sender是正在聊天的人
     global listbox, newMessageFrom # listbox是消息框,往里写消息
     global file_pic
+    global new_message
     print("in func groupRecieve")
     if chat == "000000":     # chat是当前消息框的人的ID,如果正显示群聊窗口,则显示消息内容
         if type == 'message': # 如果是文字
@@ -332,7 +341,13 @@ def groupRecieve(sender,content,type):  # sender是正在聊天的人
             # 文件的地址
             listbox.insert(tkinter.END, "文件地址:" + str(content) + '\n', 'grey')
     else: #显示新消息
-        newMessageFrom.set("群聊 发来了一条新消息")
+        if '000000' not in new_message:
+            new_message['000000'] = 1
+        else:
+            old_num = new_message['000000']
+            del new_message['000000']
+            new_message['000000'] = old_num + 1
+        newMessageFrom.set("群聊：发来了"+str(new_message['000000'])+"条新消息")
 
 
 # 聊天列表移除下线用户
@@ -473,13 +488,25 @@ def sendPicture():
 
 #切换页面
 def changePage():
-    global newMessageFrom
-    newMessageFrom.set(' ') # 清空消息提醒
+    global newMessageFrom, users
+    global new_message
+    if chat in new_message:
+        del new_message[chat]
+    kys = new_message.keys()
+    if kys:
+        user_id = list(kys)[-1]
+        if user_id == '000000':
+            user_name = '群聊'
+        else:
+            user_name = str(users[user_id].contact_name)
+        newMessageFrom.set(user_name+'：发来了'+str(new_message[user_id])+"条消息")
+    else:
+        newMessageFrom.set(' ') # 清空消息提醒
     
     print("in func changePage")
     # 清空当前页面 
     listbox.delete('1.0', tkinter.END)
-    global group_message_queue, users
+    global group_message_queue
     # 获取队列
     if chat == '000000':    # 切换到群聊   
         qt = group_message_queue    # qt stands for QueueTemp lol
@@ -622,6 +649,7 @@ def recv():
             try:
                 del users[logout_user]
                 removeList(logout_user)
+                new_message[message['user_id']] = 0
             except Exception as e:
                 print(e)
                 print("logout fault")
@@ -634,6 +662,7 @@ def recv():
             else:
                 new_online = Contact(message['user_name'], message['user_id'], False)
             users[message['user_id']] = new_online
+            new_message[message['user_id']] = 0
             addList(user_id)
         # 接到好友邀请
         elif package_type == 9:
@@ -748,8 +777,8 @@ ipRoot['width'] = 400
 ipRoot.resizable(0, 0)
 
 IP1 = tkinter.StringVar()
-IP1.set('192.168.0.165')  # 默认显示的ip和端口
-
+#IP1.set('192.168.0.165')  # 默认显示的ip和端口
+IP1.set('127.0.0.1')
 entry_ip = tkinter.Entry(ipRoot, width=120, textvariable=IP1)
 entry_ip.place(x=145, y=95, width=150, height=30)
 btnip = tkinter.Button(ipRoot, text="连接", command=connectS)

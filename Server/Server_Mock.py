@@ -64,13 +64,13 @@ class chat_server(threading.Thread):
         try:
             while True:
                 request = conn.recv(1024)
-                print(type(request))
+                #print(type(request))
                 request = request.decode('utf-8')
-                print(type(request))
-                print(request)
+                #print(type(request))
+                #print(request)
                 request = json.loads(request)
-                print(type(request))
-                print(request)
+                #print(type(request))
+                #print(request)
                 if not request:
                     break
                 # 处理之后接收到的各类型消息
@@ -314,6 +314,7 @@ class chat_server(threading.Thread):
         while True:
             lock2.acquire()
             if not que.empty():
+                sleep(0.2)
                 message = que.get()
                 #print('***********************')
                 #print(message)

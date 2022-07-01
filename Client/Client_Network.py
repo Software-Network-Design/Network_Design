@@ -12,8 +12,8 @@ chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 file_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host = socket.gethostname()
 Chat_PORT = 3500
-#Server_IP = '127.0.0.1'
-Server_IP = '192.168.0.165'
+Server_IP = '127.0.0.1'
+#Server_IP = '192.168.0.165'
 File_PORT = 3600
 Sys_PORT = 3700
 send_2_server = ""
@@ -265,14 +265,10 @@ if __name__ == '__main__':
     i = input("请输入程序序号")
     if i == '1':
         login_procedure('u123', '12321')
-        rcv_one()
-        print("u123登陆成功")
-        connect_file_rcv('u123')
-        file_path = '.\\media\\e1.png'
-        sleep(1)
-        send_file_procedure('u123', '', file_path, True)
         while True:
-            a = 0
+            data_str = chat_socket.recv(rcv_size)
+            data_str = json.loads(data_str.decode('utf-8'))
+            print(data_str)
     elif i == '2':
         login_procedure('u234', '123')
         rcv_one()
