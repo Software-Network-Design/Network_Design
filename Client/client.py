@@ -409,13 +409,13 @@ def showList(users):
 
 # 发送时贴表情
 def sendEmoji(content):
-    if content == '/hj':
+    if content == '/zm':    # ZhouMei
         listbox.image_create(tkinter.END,image = p4)
-    elif content == '/zm':
+    elif content == '/wl':  # WuLian
         listbox.image_create(tkinter.END,image = p5)
-    elif content == '/wl':
+    elif content == '/zn':  # zhiNi
         listbox.image_create(tkinter.END,image = p6)
-    elif content == '/zn':
+    elif content == '/hj':  # HuaJi
         listbox.image_create(tkinter.END,image = p7)
     else:
         pass
