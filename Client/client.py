@@ -15,7 +15,6 @@ from Contact import *
 import Client_Network as cn
 from Client_Network import chat_socket, file_socket, rcv_size, file_rcv
 from pathlib import Path
-from PIL import Image, ImageTk
 
 
 IP = ''
@@ -296,9 +295,6 @@ def oneRecieve(sender, content, type):   # sender是发送者,content是发送�
                 listbox.insert(tkinter.END, content+'\n','green')
         elif type == 'pic': # 如果是图片
             listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
-            photo = PhotoImage(file=content)
-            users[sender].image_list.append(photo)
-            print(users[sender].image_list)
             listbox.image_create(tkinter.END, image=users[sender].image_list[-1])
             listbox.insert(END, '\n')
         elif type == 'file': # 如果是文件
@@ -308,18 +304,6 @@ def oneRecieve(sender, content, type):   # sender是发送者,content是发送�
             listbox.insert(END, '\n')
             # 文件的地址
             listbox.insert(tkinter.END, "文件地址:" + str(content) + '\n', 'grey')
-    # elif sender == uID:
-    #     if type == 'message': # 如果是文字
-    #         listbox.insert(tkinter.END,"我"+':\n', 'blue')
-    #         listbox.insert(tkinter.END, content+'\n','green')
-    #     elif type == 'pic': # 如果是图片
-    #         listbox.insert(tkinter.END,"我"+':\n', 'blue')
-    #         photo = PhotoImage(file=content)
-    #         listbox.image_create(tkinter.END, image=photo)
-    #     elif type == 'file': # 如果是文件
-    #         listbox.insert(tkinter.END,"我"+':\n', 'blue')
-    #         #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图,保存地址
-    #         #listbox.image_create(tkinter.END, image=photo)
     else: #显示新消息
         newMessageFrom.set(str(users[sender].contact_name) + "发来了一条新消息")
 
@@ -338,8 +322,6 @@ def groupRecieve(sender,content,type):  # sender是正在聊天的人
                 listbox.insert(tkinter.END, content+'\n','green')
         elif type == 'pic': # 如果是图片
             listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
-            photo = PhotoImage(file=content)
-            group_pic_list.append(photo)
             listbox.image_create(tkinter.END, image=group_pic_list[-1])
             listbox.insert(END, '\n')
         elif type == 'file': # 如果是文件
@@ -349,18 +331,6 @@ def groupRecieve(sender,content,type):  # sender是正在聊天的人
             listbox.insert(END, '\n')
             # 文件的地址
             listbox.insert(tkinter.END, "文件地址:" + str(content) + '\n', 'grey')
-    # elif sender == uID:
-    #     if type == 'message': # 如果是文字
-    #         listbox.insert(tkinter.END,"我"+':\n', 'blue')
-    #         listbox.insert(tkinter.END, content+'\n','green')
-    #     elif type == 'pic': # 如果是图片
-    #         listbox.insert(tkinter.END,"我"+':\n', 'blue')
-    #         photo = PhotoImage(file=content)
-    #         listbox.image_create(tkinter.END, image=photo)
-    #     elif type == 'file': # 如果是文件
-    #         listbox.insert(tkinter.END,"我"+':\n', 'blue')
-    #         #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图
-    #         #listbox.image_create(tkinter.END, image=photo)
     else: #显示新消息
         newMessageFrom.set("群聊 发来了一条新消息")
 
@@ -376,6 +346,7 @@ def removeList(logout_user):
     # 弹窗显示好友下线
     if users[logout_user].friend == True:
         tkinter.messagebox.showinfo('温馨提示', message='您的好友'+str(users[logout_user].contact_name)+'已下线')
+
 
 # 聊天列表显示新上线用户
 def addList(login_user):
@@ -407,6 +378,7 @@ def showList(users):
     for key in users.keys():
         listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
 
+
 # 发送时贴表情
 def sendEmoji(content):
     if content == '/zm':    # ZhouMei
@@ -419,6 +391,8 @@ def sendEmoji(content):
         listbox.image_create(tkinter.END,image = p7)
     else:
         pass
+    listbox.insert(END, '\n')
+
 
 # 创建发送
 def sendText(*args):
@@ -528,7 +502,10 @@ def changePage():
                 listbox.image_create(tkinter.END, image=file_pic)
                 listbox.insert(tkinter.END, "\n文件地址:"+str(item['content'])+'\n', 'grey')
             elif item['type'] == 'pic':
-                listbox.image_create(tkinter.END, image=users[item['sender']].image_list[pic_index])
+                if chat == '000000':
+                    listbox.image_create(tkinter.END, image=group_pic_list[pic_index])
+                else:
+                    listbox.image_create(tkinter.END, image=users[chat].image_list[pic_index])
                 listbox.insert(END, '\n')
                 pic_index += 1
         else:
@@ -557,6 +534,7 @@ def ciConfirm():
 # 弹窗确认成功
 def changeSuccess():
     tkinter.messagebox.showinfo('温馨提示', message='修改成功')
+
 
 # 更改用户名
 def changeName():
@@ -724,9 +702,12 @@ def file_recv():
                 print(type(data), data)
                 if data['type'] == 12 and data['info'] == "complete":
                     print("Pic receive Success")
+                    photo = PhotoImage(file=file_path)
                     if data['receive'] != '':
+                        users[sender_id].image_list.append(photo)
                         oneRecieve(sender_id, file_path, 'pic')
                     else:
+                        group_pic_list.append(photo)
                         groupRecieve(sender_id, file_path, 'pic')
                 else:
                     print("结束异常")
@@ -864,29 +845,30 @@ listboxFriend.bind('<ButtonRelease-1>', private)
 
 
 # MacOS
-p1 = tkinter.PhotoImage(file='media/emoji.png')
-p2 = tkinter.PhotoImage(file='media/file.png')
-p3 = tkinter.PhotoImage(file='media/picture.png')
-p4 = tkinter.PhotoImage(file='media/e1.png')
-p5 = tkinter.PhotoImage(file='media/e2.png')
-p6 = tkinter.PhotoImage(file='media/e3.png')
-p7 = tkinter.PhotoImage(file='media/e4.png')
-p8 = tkinter.PhotoImage(file='media/filePic.png')
+# p1 = tkinter.PhotoImage(file='media/emoji.png')
+# p2 = tkinter.PhotoImage(file='media/file.png')
+# p3 = tkinter.PhotoImage(file='media/picture.png')
+# p4 = tkinter.PhotoImage(file='media/e1.png')
+# p5 = tkinter.PhotoImage(file='media/e2.png')
+# p6 = tkinter.PhotoImage(file='media/e3.png')
+# p7 = tkinter.PhotoImage(file='media/e4.png')
+# p8 = tkinter.PhotoImage(file='media/filePic.png')
 
 # Windows
-# p1 = tkinter.PhotoImage(file=Path('../media/emoji.png'))
-# p2 = tkinter.PhotoImage(file=Path('../media/file.png'))
-# p3 = tkinter.PhotoImage(file=Path('../media/picture.png'))
-# p4 = tkinter.PhotoImage(file=Path('../media/e1.png'))
-# p5 = tkinter.PhotoImage(file=Path('../media/e2.png'))
-# p6 = tkinter.PhotoImage(file=Path('../media/e3.png'))
-# p7 = tkinter.PhotoImage(file=Path('../media/e4.png'))
-# p8 = tkinter.PhotoImage(file=Path('../media/filePic.png'))
+p1 = tkinter.PhotoImage(file=Path('../media/emoji.png'))
+p2 = tkinter.PhotoImage(file=Path('../media/file.png'))
+p3 = tkinter.PhotoImage(file=Path('../media/picture.png'))
+p4 = tkinter.PhotoImage(file=Path('../media/e1.png'))
+p5 = tkinter.PhotoImage(file=Path('../media/e2.png'))
+p6 = tkinter.PhotoImage(file=Path('../media/e3.png'))
+p7 = tkinter.PhotoImage(file=Path('../media/e4.png'))
+p8 = tkinter.PhotoImage(file=Path('../media/filePic.png'))
 dicEmoji = {'aa**': p4, 'bb**': p5, 'cc**': p6, 'dd**': p7}
 ee = 0  # 判断表情面板开关的标志
 
 # 路径问题
-file_pic = PhotoImage(file='media/icons8-file-96.png')
+# file_pic = PhotoImage(file='media/icons8-file-96.png')
+file_pic = PhotoImage(file='../media/icons8-file-96.png')
 
 # 创建按钮
 btnEmoji = eBut = tkinter.Button(root,image=p1, command=sendEmoji_)
