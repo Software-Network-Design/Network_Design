@@ -82,7 +82,7 @@ def registerConfirm():
     passwordReg= entryPasswordReg.get()
     cn.register_procedure(userReg,passwordReg)
     ID = cn.rcv_one()
-    uID = ID['revieve']
+    uID = ID['receive']
     tkinter.messagebox.showerror('温馨提示', message='注册成功\n您的ID是: '+str(uID))
     loginReg.destroy()
 
