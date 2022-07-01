@@ -126,9 +126,8 @@ class chat_server(threading.Thread):
                                     }
                                 }
                                 print(users)
-                                
                                 for online_user in users:
-                                    print(user_id+' to '+online_user[1])
+                                    print(user_id + 'to' + online_user[1])
                                     upline_message['receive'] = online_user[1]
                                     print('who received:')
                                     print(upline_message['receive'])
@@ -442,26 +441,27 @@ class file_server(threading.Thread):
                         if(not is_online and not group_send):
                             print("用户不在线！")
                         elif(not group_send):
+                            message['isGroup'] = False
                             self.save_data(message)
                             
                         else:   #群发
                             if(request['info'] == 'start sending'):
                                 for online_user in users:
                                     if(online_user[1] != send):
-                                        print("现在的id为:" + online_user[1])
                                         receive_user_lock[online_user[1]][0].acquire()
                                         receive_user_lock[online_user[1]][1] = time.time() + 3*waitingTime
                                         send_message = message.copy()
                                         send_message['receive'] = online_user[1]
-                                        print("存储时它是" + str(send_message))
+                                        send_message['isGroup'] = True
                                         self.save_data(send_message)
                             elif(request['info'] == 'complete'):
                                 for online_user in users:
                                     if(online_user[1] != send):
                                         receive_user_lock[online_user[1]][0].release()
-                                        message['receive'] = online_user[1]
-                                        self.save_data(message)
-                        #self.save_data(message)
+                                        send_message = message.copy()
+                                        send_message['receive'] = online_user[1]
+                                        send_message['isGroup'] = True
+                                        self.save_data(send_message)
                     elif request['type'] == 1:
                         print("文件服务器登录信息")
                         user_id = request['send']
@@ -535,7 +535,6 @@ class file_server(threading.Thread):
         while True:
             if not fileque.empty():
                 message = fileque.get()
-                print("函数转移后它是" + str(message))
                 send = message['send']
                 receive = message['receive']
                 info = message['info']
@@ -546,12 +545,15 @@ class file_server(threading.Thread):
                             print('现在发送的是' + str(message))
                             online_user[4].send(info)
                 else:
+                    isGroup = message['isGroup']
+                    if isGroup:
+                        message['receive'] = ''
                     message = json.dumps(message, ensure_ascii=False)
                     message = message.encode('utf-8')
                     for online_user in users:
                         if online_user[1] == receive:
                             sleep(1)
-                            print('现在发送的是' + str(message))
+                            print('现在发送的是' + str(message) + '真实receive为:' + str(receive))
                             online_user[4].send(message)
                             sleep(1)
                             break

@@ -12,14 +12,14 @@ chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 file_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host = socket.gethostname()
 Chat_PORT = 3500
-Server_IP = '127.0.0.1'
-# Server_IP = '192.168.0.165'
+#Server_IP = '127.0.0.1'
+Server_IP = '192.168.0.165'
 File_PORT = 3600
 Sys_PORT = 3700
 send_2_server = ""
 rcv_size = 1024
-default_file_path = Path("../file_received/")
-default_pic_path = Path("../pic_received/")
+default_file_path = Path("./file_received/")
+default_pic_path = Path("./pic_received/")
 group_message_queue = Queue()
 
 
@@ -222,24 +222,68 @@ def rcv_one():
     return data_str
 
 
-if __name__ == '__main__':
-    chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    connect_server()
-    login_procedure('u123', '12321')
+def file_recv():
+    print("in func file_recv")
     while True:
-        data_str = chat_socket.recv(rcv_size)
-        print(data_str)
-        data_str1 = data_str.decode('utf-8')
-        print(data_str1)
-        data_str2 = json.loads(data_str1)
-        print(data_str2)
-    # login_response = rcv_one()
-    # login_success = login_response['info']['success']
-    # if login_success == "登录成功":
-    #     print("login success")
-    #     init_user_list(user_list, login_response['info'])
-    # elif login_response == "无此用户":
-    #     pass
-    # elif login_success == "密码错误":
-    #     pass
+        rcv_buffer = file_socket.recv(rcv_size)
+        print('file_recv:', rcv_buffer)
+        data = json.loads(rcv_buffer.decode('utf-8'))
+        package_type = data['type']
+        sender_id = data['send']
+        # 发送文件
+        if package_type == 6:
+            if data['info'] == "start sending":
+                # 实际上的文件接收过程
+                file_path = file_rcv(is_pic=False)
+                    # groupRecieve(sender_id, file_path, 'file')
+                rcv_buffer = file_socket.recv(rcv_size)
+                data = json.loads(rcv_buffer.decode('utf-8'))
+                print(type(data), data)
+                if data['type'] == 6 and data['info'] == "complete":
+                    print("File receive Success")
+                else:
+                    print("结束异常")
+            else:
+                print("wrong package type/info")
+        # 发送图片
+        elif package_type == 12:
+            if data['info'] == "start sending":
+                file_path = file_rcv(is_pic=True)
+                rcv_buffer = file_socket.recv(rcv_size)
+                data = json.loads(rcv_buffer.decode('utf-8'))
+                print(type(data), data)
+                if data['type'] == 12 and data['info'] == "complete":
+                    print("Pic receive Success")
+                else:
+                    print("结束异常")
+            else:
+                print("wrong package type/info")
+
+if __name__ == '__main__':
+    connect_server()
+
+    i = input("请输入程序序号")
+    if i == '1':
+        login_procedure('u123', '12321')
+        rcv_one()
+        print("u123登陆成功")
+        connect_file_rcv('u123')
+        file_path = '.\\media\\e1.png'
+        sleep(1)
+        send_file_procedure('u123', '', file_path, True)
+        while True:
+            a = 0
+    elif i == '2':
+        login_procedure('u234', '123')
+        rcv_one()
+        print("u234登陆成功")
+        connect_file_rcv('u234')
+        file_recv()
+    elif i == '3':
+        login_procedure('u456', '112233')
+        rcv_one()
+        print("u234登陆成功")
+        connect_file_rcv('u456')
+        file_recv()
+
     chat_socket.close()
