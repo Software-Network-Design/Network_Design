@@ -286,7 +286,10 @@ def oneRecieve(sender, content, type):   # sender是发送者,content是发送�
     if chat == sender: # chat是当前消息框的人的ID,如果正显示对应聊天窗口,则显示消息内容
         if type == 'message': # 如果是文字
             listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
-            listbox.insert(tkinter.END, content+'\n','green')
+            if content in ['/hj','/zm','/wl','/zn']:
+                sendEmoji(content)
+            else:
+                listbox.insert(tkinter.END, content+'\n','green')
         elif type == 'pic': # 如果是图片
             listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
 
@@ -321,7 +324,10 @@ def groupRecieve(sender,content,type):  # sender是正在聊天的人
     if chat == "000000":     # chat是当前消息框的人的ID,如果正显示群聊窗口,则显示消息内容
         if type == 'message': # 如果是文字
             listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
-            listbox.insert(tkinter.END, content+'\n', 'green')
+            if content in ['/hj','/zm','/wl','/zn']:
+                sendEmoji(content)
+            else:
+                listbox.insert(tkinter.END, content+'\n','green')
         elif type == 'pic': # 如果是图片
             listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
             photo = PhotoImage(file=content)
@@ -394,6 +400,18 @@ def showList(users):
     for key in users.keys():
         listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
 
+# 发送时贴表情
+def sendEmoji(content):
+    if content == '/hj':
+        listbox.image_create(tkinter.END,dicEmoji['aa**'])
+    elif content == '/zm':
+        listbox.image_create(tkinter.END,dicEmoji['bb**'])
+    elif content == '/wl':
+        listbox.image_create(tkinter.END,dicEmoji['cc**'])
+    elif content == '/zn':
+        listbox.image_create(tkinter.END,dicEmoji['dd**'])
+    else:
+        pass
 
 # 创建发送
 def sendText(*args):
@@ -406,7 +424,11 @@ def sendText(*args):
         # 发送
         cn.send_dm(uID, chat, str(a.get()), users)
         listbox.insert(tkinter.END, str('我')+':\n', 'blue')
-        listbox.insert(tkinter.END, str(a.get())+'\n', 'blue')
+        
+        if str(a.get()) in ['/hj','/zm','/wl','/zn']:
+            sendEmoji(str(a.get()))
+        else:
+            listbox.insert(tkinter.END, str(a.get())+'\n', 'blue')
         # 把发送消息加入队列
         users[chat].message_queue.put(
             {'sender': str(uID), 'content': str(a.get()), 'type': 'message'})
@@ -851,7 +873,7 @@ p8 = tkinter.PhotoImage(file='media/filePic.png')
 # p6 = tkinter.PhotoImage(file=Path('../media/e3.png'))
 # p7 = tkinter.PhotoImage(file=Path('../media/e4.png'))
 # p8 = tkinter.PhotoImage(file=Path('../media/filePic.png'))
-dicEmoji = {'aa**': p1, 'bb**': p2, 'cc**': p3, 'dd**': p4}
+dicEmoji = {'aa**': p4, 'bb**': p5, 'cc**': p6, 'dd**': p7}
 ee = 0  # 判断表情面板开关的标志
 
 # 创建按钮
