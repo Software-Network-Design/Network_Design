@@ -8,7 +8,7 @@ import json  # json.dumps(some)打包   json.loads(some)解包
 import tkinter
 import tkinter.messagebox
 from tkinter.scrolledtext import ScrolledText
-from tkinter import PhotoImage, filedialog
+from tkinter import PhotoImage, StringVar, filedialog
 from tkinter import filedialog
 from Contact import *
 import Client_Network as cn
@@ -26,6 +26,7 @@ users = {}  # 在线用户列表
 chat = '000000'  # 聊天对象id, 默认为群聊
 f_s = 1  # 代表朋友和陌生人之间的分隔位置
 group_message_queue = Queue() #群聊信息
+
 
 # 连接服务器
 def connectS():
@@ -231,8 +232,12 @@ def private(*args):
 def do_job():
     pass
 
+#发送好友申请
+def friendRequestAdd():
+    cn.friend_request(uID,chat)
 
-# 好友请求弹窗
+
+# 接收好友申请
 def acc(): # 同意好友请求
     global sta, cnt
     sta = True
@@ -247,7 +252,7 @@ def turnDown():     # 拒绝好友请求
     frRoot.destroy()
 
 
-def friendRequest(stranger):    # 来自名为stranger的人的好友请求
+def friendRequestRecieve(stranger):    # 来自名为stranger的人的好友请求
     global sta,frRoot,cnt
     sta = bool()
     cnt = int()
@@ -269,7 +274,7 @@ def friendRequest(stranger):    # 来自名为stranger的人的好友请求
 
 # 一对一聊天消息显示(接收到的)
 def oneRecieve(sender, content, type):   # sender是发送者,content是发送内容,type是发送类型
-    global listbox  # listbox是消息框,往里写消息
+    global listbox, newMessageFrom  # listbox是消息框,往里写消息
     if chat == sender: # chat是当前消息框的人的ID,如果正显示对应聊天窗口,则显示消息内容
         if type == 'message': # 如果是文字
             listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
@@ -294,10 +299,13 @@ def oneRecieve(sender, content, type):   # sender是发送者,content是发送�
             listbox.insert(tkinter.END,"我"+':\n', 'blue')
             #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图,保存地址
             #listbox.image_create(tkinter.END, image=photo)
+    else: #显示新消息
+        newMessageFrom.set(str(users[sender].contact_name) + "发来了一条新消息")  
+    
 
 # 群聊消息展示(接收到的)
 def groupRecieve(sender,content,type):  # sender是正在聊天的人
-    global listbox  # listbox是消息框,往里写消息
+    global listbox, newMessageFrom # listbox是消息框,往里写消息
     if chat == "000000":     # chat是当前消息框的人的ID,如果正显示群聊窗口,则显示消息内容
         if type == 'message': # 如果是文字
             listbox.insert(tkinter.END,str(users[sender].contact_name)+':\n', 'green')
@@ -322,6 +330,8 @@ def groupRecieve(sender,content,type):  # sender是正在聊天的人
             listbox.insert(tkinter.END,"我"+':\n', 'blue')
             #photo = PhotoImage(file=str(content)) # 一会找一张文件的贴图
             #listbox.image_create(tkinter.END, image=photo)
+    else: #显示新消息
+        newMessageFrom.set("群聊 发来了一条新消息")
 
 # 个人消息展示（我发送的）
 def oneSend(reciever, content, type):
@@ -347,6 +357,7 @@ def addList(login_user):
     for key in users.keys():
         listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
     # 弹窗
+
 
 
 # 聊天框里面显示图片
@@ -585,7 +596,7 @@ def recv():
         # 接到好友邀请
         elif package_type == 9:
             friend_request_from = rcv_data['sender']
-            accept = friendRequest(friend_request_from)
+            accept = friendRequestRecieve(friend_request_from)
             if accept:
                 users[friend_request_from].is_friend = True
             cn.friend_response(uID, accept, friend_request_from)
@@ -756,8 +767,8 @@ listboxFriend.place(x=0, y=0, width=180, height=550)
 showList(users)
 
 menuFriend = tkinter.Menu()     # 右键菜单
-menuFriend.add_cascade(label="添加好友")
-menuFriend.add_cascade(label="私聊")
+menuFriend.add_cascade(label="添加好友", command=friendRequestAdd)
+menuFriend.add_cascade(label="私聊") 
 showPopoutMenu(listboxFriend, menuFriend)
 
 
@@ -780,24 +791,24 @@ listboxFriend.bind('<ButtonRelease-1>', private)
 
 
 # MacOS
-# p1 = tkinter.PhotoImage(file='media/emoji.png')
-# p2 = tkinter.PhotoImage(file='media/file.png')
-# p3 = tkinter.PhotoImage(file='media/picture.png')
-# p4 = tkinter.PhotoImage(file='media/e1.png')
-# p5 = tkinter.PhotoImage(file='media/e2.png')
-# p6 = tkinter.PhotoImage(file='media/e3.png')
-# p7 = tkinter.PhotoImage(file='media/e4.png')
-# p8 = tkinter.PhotoImage(file='media/filePic.png')
+p1 = tkinter.PhotoImage(file='media/emoji.png')
+p2 = tkinter.PhotoImage(file='media/file.png')
+p3 = tkinter.PhotoImage(file='media/picture.png')
+p4 = tkinter.PhotoImage(file='media/e1.png')
+p5 = tkinter.PhotoImage(file='media/e2.png')
+p6 = tkinter.PhotoImage(file='media/e3.png')
+p7 = tkinter.PhotoImage(file='media/e4.png')
+p8 = tkinter.PhotoImage(file='media/filePic.png')
 
 # Windows
-p1 = tkinter.PhotoImage(file=Path('../media/emoji.png'))
-p2 = tkinter.PhotoImage(file=Path('../media/file.png'))
-p3 = tkinter.PhotoImage(file=Path('../media/picture.png'))
-p4 = tkinter.PhotoImage(file=Path('../media/e1.png'))
-p5 = tkinter.PhotoImage(file=Path('../media/e2.png'))
-p6 = tkinter.PhotoImage(file=Path('../media/e3.png'))
-p7 = tkinter.PhotoImage(file=Path('../media/e4.png'))
-p8 = tkinter.PhotoImage(file=Path('../media/filePic.png'))
+# p1 = tkinter.PhotoImage(file=Path('../media/emoji.png'))
+# p2 = tkinter.PhotoImage(file=Path('../media/file.png'))
+# p3 = tkinter.PhotoImage(file=Path('../media/picture.png'))
+# p4 = tkinter.PhotoImage(file=Path('../media/e1.png'))
+# p5 = tkinter.PhotoImage(file=Path('../media/e2.png'))
+# p6 = tkinter.PhotoImage(file=Path('../media/e3.png'))
+# p7 = tkinter.PhotoImage(file=Path('../media/e4.png'))
+# p8 = tkinter.PhotoImage(file=Path('../media/filePic.png'))
 dicEmoji = {'aa**': p1, 'bb**': p2, 'cc**': p3, 'dd**': p4}
 ee = 0  # 判断表情面板开关的标志
 
@@ -813,6 +824,13 @@ btnPicture.place(x=243,y=374,width=30,height=30)
 btnSend = tkinter.Button(root, text='发送', command=sendText)
 btnSend.place(x=670, y=513, width=120, height=30)
 root.bind('<Return>', sendText)  # 绑定回车发送信息
+
+#新消息提醒
+newMessageFrom = tkinter.StringVar()
+
+LabelNewMessage = tkinter.Entry(root,textvariable=newMessageFrom)
+LabelNewMessage.place(x=180,y=515, height=30,width=480)
+
 
 
 # 创建菜单栏
