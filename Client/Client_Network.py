@@ -115,6 +115,7 @@ def send_file(file_path, send_socket):
                     sent_size += rcv_size
                 send_socket.send(data_str)
             fp.close()
+        sleep(0.1)
 
 
 # 发送文件整个过程
@@ -205,6 +206,7 @@ def file_rcv(is_pic):
         file_socket.settimeout(None)
         actual_size = file.tell()
         if int(file_size) != actual_size:
+            print(file_size, actual_size)
             print("file damaged")
     return file_path
 

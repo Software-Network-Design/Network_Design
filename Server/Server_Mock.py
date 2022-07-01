@@ -245,6 +245,7 @@ class chat_server(threading.Thread):
                             db.commit()
                             self.save_data(correct_message)
                             if select == 1:
+                                print("where is 16")
                                 modify_message = {
                                     'send': user_id,
                                     'receive': '',
@@ -312,19 +313,21 @@ class chat_server(threading.Thread):
                 type = message['type']  
                 print(message)      
                 # 群发消息
-                if type == 4 or type == 5 or type == 8:
+                if type == 4 or type == 5 or type == 8 or type == 16:
                     print('群发消息')
+                    message = json.dumps(message, ensure_ascii=False)
+                    message = message.encode('utf-8')
                     for online_user in users:
                         if online_user[1] != send:
-                            message = json.dumps(message, ensure_ascii=False)
-                            online_user[0].send(message.encode('utf-8')) 
+                            online_user[0].send(message)
                 # 私发消息
                 else:
                     print('私发消息')
+                    message = json.dumps(message, ensure_ascii=False)
+                    message = message.encode('utf-8')
                     for online_user in users:
                         if online_user[1] == receive:
-                            message = json.dumps(message, ensure_ascii=False)
-                            online_user[0].send(message.encode('utf-8'))
+                            online_user[0].send(message)
                 #sleep(1)
 
     # 用户离线后将其从users中删除
@@ -520,12 +523,13 @@ class file_server(threading.Thread):
                             print('现在发送的是' + str(message))
                             online_user[4].send(info)
                 else:
+                    message = json.dumps(message, ensure_ascii=False)
+                    message = message.encode('utf-8')
                     for online_user in users:
                         if online_user[1] == receive:
                             sleep(1)
                             print('现在发送的是' + str(message))
-                            message = json.dumps(message, ensure_ascii=False)
-                            online_user[4].send(message.encode('utf-8'))
+                            online_user[4].send(message)
                             sleep(1)
                             break
 
