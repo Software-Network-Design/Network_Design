@@ -493,6 +493,7 @@ def changePage():
     if chat in new_message:
         del new_message[chat]
     kys = new_message.keys()
+    print(kys)
     if kys:
         user_id = list(kys)[-1]
         if user_id == '000000':
@@ -649,7 +650,7 @@ def recv():
             try:
                 del users[logout_user]
                 removeList(logout_user)
-                if message['user_id'] in new_message:
+                if message["user_id"] in new_message:
                     del new_message[message['user_id']]
             except Exception as e:
                 print(e)
@@ -663,6 +664,7 @@ def recv():
             else:
                 new_online = Contact(message['user_name'], message['user_id'], False)
             users[message['user_id']] = new_online
+            # new_message[message['user_id']] = 0
             addList(user_id)
         # 接到好友邀请
         elif package_type == 9:
