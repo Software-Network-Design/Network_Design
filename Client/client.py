@@ -658,7 +658,7 @@ def recv():
             message = rcv_data['info']
             user_id = message['user_id']
             if message['type'] == 'friend':
-                new_online = Contact(message['user_name'], message['user_id'], True)
+                new_online = Contact('[友] '+message['user_name'], message['user_id'], True)
             else:
                 new_online = Contact(message['user_name'], message['user_id'], False)
             users[message['user_id']] = new_online

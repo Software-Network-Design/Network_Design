@@ -115,6 +115,7 @@ class chat_server(threading.Thread):
                                 friends_num = 0
                                 strangers_num = 0
                                 #好友上线消息
+                                ''''
                                 upline_message = {
                                     'send': user_id,
                                     'receive': '',
@@ -125,9 +126,17 @@ class chat_server(threading.Thread):
                                         'type': ''
                                     }
                                 }
-                                print(users)
+                                '''
                                 for online_user in users:
-                                    print(user_id + 'to' + online_user[1])
+                                    upline_message = {}
+                                    upline_message['send'] = user_id
+                                    upline_message['type'] = 8
+                                    upline_message['info'] = {
+                                        'user_id': user_id,
+                                        'user_name': user_name,
+                                        'type': ''
+                                    }
+                                    print(online_user)
                                     upline_message['receive'] = online_user[1]
                                     print('who received:')
                                     print(upline_message['receive'])
@@ -137,13 +146,6 @@ class chat_server(threading.Thread):
                                     # 是陌生人
                                     if not if_friends:
                                         upline_message['info']['type'] = 'stranger'
-                                        ''''
-                                        message['info']['strangers']['stranger'+str(strangers_num)]={
-                                            'user_id': online_user[1],
-                                            'user_name': online_user[2]
-                                        }
-                                        strangers_num += 1
-                                        '''
                                         stranger = {
                                             'user_id': online_user[1],
                                             'user_name': online_user[2]
@@ -152,25 +154,18 @@ class chat_server(threading.Thread):
                                     # 是好友
                                     else:
                                         upline_message['info']['type'] = 'friend'
-                                        ''''
-                                        message['info']['friends']['friend'+str(friends_num)]={
-                                            'user_id': online_user[1],
-                                            'user_name': online_user[2]
-                                        }
-                                        friends_num += 1
-                                        '''
+
                                         friend = {
                                             'user_id': online_user[1],
                                             'user_name': online_user[2]
                                         }
                                         message['info']['friends'].append(friend)
+                                    
                                     # 发送上线消息
-                                    print('upline_message')
+                                    print('message')
                                     print(upline_message)
                                     self.save_data(upline_message)
-                                # 记录好友、陌生人数量    
-                                #message['info']['friends']['friends_num'] = friends_num
-                                #message['info']['strangers']['strangers_num'] = strangers_num
+
                                 # 将该用户加入在线用户列表
                                 users.append([conn, user_id, user_name, addr,'']) 
                                 receive_user_lock[user_id] = [threading.Lock(),time.time()]
@@ -305,53 +300,34 @@ class chat_server(threading.Thread):
     def save_data(self, message):
         lock.acquire()
         try:
-            que.put((message))
+            que.put(message)
+        except Exception as e:
+            print(e)
         finally:
             lock.release()
+
 
     # 将队列中消息转发
     def send_data(self):
         while True:
-            lock2.acquire()
             if not que.empty():
-                sleep(0.2)
                 message = que.get()
-                #print('***********************')
-                #print(message)
                 send = message['send']
                 receive = message['receive']
                 type = message['type']  
-                #print('message') 
-                #print(message)
                 message1 = json.dumps(message, ensure_ascii=False)    
-                #print('message1') 
-                #print(message1)
                 message2 = message1.encode('utf-8')
-                #print('message2') 
-                #print(message2)
-                #print('receive')
-                #print(receive)
                 # 群发消息
                 if type == 4 or type == 5 or type == 16:
-                    print('群发消息')
-                    #all_message = json.dumps(message, ensure_ascii=False)
-                    #all_message = all_message.encode('utf-8')
                     for online_user in users:
                         if online_user[1] != send:
                             online_user[0].send(message2)
                 # 私发消息
                 else:
-                    print('私发消息')
                     for online_user in users:
                         if online_user[1] == receive:
-                            #print('online: '+online_user[1])
-                            #print('receive: '+receive)
-                            #print(online_user[0])
-                            #print('8-j')
-                            #print(json.loads(message2.decode('utf-8')))
                             online_user[0].send(message2)
-                #sleep(1)
-            lock2.release()
+
 
     # 用户离线后将其从users中删除
     def delUser(self, conn):
