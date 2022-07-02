@@ -649,7 +649,8 @@ def recv():
             try:
                 del users[logout_user]
                 removeList(logout_user)
-                new_message[message['user_id']] = 0
+                if message['user_id'] in new_message:
+                    del new_message[message['user_id']]
             except Exception as e:
                 print(e)
                 print("logout fault")
@@ -658,11 +659,10 @@ def recv():
             message = rcv_data['info']
             user_id = message['user_id']
             if message['type'] == 'friend':
-                new_online = Contact('[友] '+message['user_name'], message['user_id'], True)
+                new_online = Contact(message['user_name'], message['user_id'], True)
             else:
                 new_online = Contact(message['user_name'], message['user_id'], False)
             users[message['user_id']] = new_online
-            new_message[message['user_id']] = 0
             addList(user_id)
         # 接到好友邀请
         elif package_type == 9:
