@@ -287,6 +287,7 @@ class chat_server(threading.Thread):
             pass
         finally:
             conn.close()
+            # 用户下线消息
             logout_user_id = self.delUser(conn)
             logout_message = {
                 'send': logout_user_id,

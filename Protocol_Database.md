@@ -65,6 +65,21 @@
         ]
     }
 }
+8：有人上线提醒
+{
+    "send": "server",
+    //被提醒人id
+    "receive": "u234",
+    "type": 8,
+    "info": {
+        //上线人id
+        "user_id": "u123",
+        //上线人用户名
+        "user_name": "zyx",
+        //上线人与被提醒人关系
+        "type": "friend" // 或"stranger"
+    }
+}
 ```
 
 #### 注册过程
@@ -190,14 +205,25 @@ file_name|file_size
         "NewInf": "123321"
     }
 }
-16：修改个人信息结果返回
+15：修改个人信息结果返回
 {
     "send": "server",
     "receive": "u234",
-    "type": 16,
+    "type": 15,
     "info": {
-        "user_id": "u234"
-        "NewInf": True / False
+        //0：修改密码；1：修改用户名
+        "PU": 0 / 1
+        "NewInf": "123321"
+    }
+}
+16：广播修改后的用户名
+{
+    'send': 'server',
+    'receive': 'u234',
+    'type': 16,
+    'info': {
+        'user_id': user_id,
+        'user_name': New_Inf
     }
 }
 ```
