@@ -103,7 +103,8 @@ def showPopoutMenu(w, menu):
 # 发送表情
 def mark(exp):  # 参数是发的表情图标记, 发送后将按钮销毁
     global ee
-    mes = exp + ':;' + user + ':;' + chat
+    # mes = exp + ':;' + user + ':;' + chat
+    a.set(exp)
     # s.send(mes.encode())#####
     b1.destroy()
     b2.destroy()
@@ -114,19 +115,19 @@ def mark(exp):  # 参数是发的表情图标记, 发送后将按钮销毁
 
 # 四个对应的函数
 def bb1():
-    mark('aa**')
+    mark('/zm')
 
 
 def bb2():
-    mark('bb**')
+    mark('/wl')
 
 
 def bb3():
-    mark('cc**')
+    mark('/zn')
 
 
 def bb4():
-    mark('dd**')
+    mark('/hj')
 
 
 def sendEmoji_():
@@ -668,8 +669,8 @@ def recv():
             print(users, "before del")
             try:
                 removeList(logout_user)
-                if message["user_id"] in new_message:
-                    del new_message[message['user_id']]
+                if logout_user in new_message:
+                    del new_message[logout_user]
             except Exception as e:
                 print(users, "in exception")
                 print(e)
