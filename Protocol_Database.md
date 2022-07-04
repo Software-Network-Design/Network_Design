@@ -38,23 +38,72 @@
 #### 登录过程
 
 ```
-Client-->Server
-(发送用户(用户Num);接受用户();类型(1);消息内容(用户IP,密码))
-Server-->Client
-(发送用户();接受用户(用户Num);类型(2);消息内容(用户拥有的好友与群聊))
-// 群聊信息包括群号，群成员的信息，群成员是否在线
-Server-->Client
-(发送用户();接受用户(用户Num);类型(8);消息内容(上线用户Num))
+1：登录请求
+{
+    // 用户id
+    "send": "u123",
+    "receive": "",
+    "type": 1,
+    "info": {
+        "user_id": "u123",
+        "user_pwd": "123"
+    }
+}
+2：登陆响应返回示例
+{
+    "send": "server",
+    "receive": "u123",
+    "type": 2,
+    "info": {
+        "success": "登录成功",//或"无此用户"或"密码错误"
+        "strangers": [],
+        "friends": [
+            {
+                "user_id": "u234",
+                "user_name": "xyz"
+            }
+        ]
+    }
+}
 ```
 
+#### 注册过程
 
+```
+13：注册请求
+{
+    "send": "",
+    "receive": "",
+    "type": 13,
+    "info": {
+        "user_name": "xxxx",
+        "user_pwd": "123321123"
+    }
+}
+14：注册响应
+{
+    "send": "server",
+    // 若成功，返回用户id，即账号；失败返回""
+    "receive": "998551534",
+    "type": 14,
+    // 用户名
+    "info": "xxxx"
+}
+```
 
 #### 注销过程
 
 ```
-关闭程序时进行
-Client-->Server
-(发送用户(用户Num);接受用户();类型(5);消息内容(注销))
+5：注销消息
+每个在线的用户都会收到注销账户发出的注销消息
+{
+    //注销账户id
+    "send": "u123",
+    //接收者id
+    "receive": "u234",
+    "type": 5,
+    "info": "logout"
+}
 ```
 
 
@@ -64,19 +113,25 @@ Client-->Server
 ##### 一对一聊天
 
 ```
-Client-->Server
-(发送用户(用户Num);接受用户(用户Num);类型(3);消息内容(聊天消息))
-Server-->Client
-(发送用户(用户Num);接受用户(用户Num);类型(3);消息内容(聊天消息))
+3：私聊消息
+{
+    "send": "u123",
+    "receive": "u234",
+    "type": 3,
+    "info": "私聊噢"
+}
 ```
 
 ##### 群聊
 
 ```
-Client-->Server
-(发送用户(用户Num);接受用户(群Num);类型(4);消息内容(聊天消息))
-Server-->Client
-(发送用户(群Num);接受用户(用户Num);类型(4);消息内容(聊天消息))
+4：群发消息
+{
+    "send": "u123",
+    "receive": "",
+    "type": 4,
+    "info": "群聊噢"
+}
 ```
 
 
@@ -102,16 +157,21 @@ file_name|file_size
 #### 加好友
 
 ```
-Client-->Server
-(发送用户(用户Num);接受用户();类型(9);消息内容(目标用户Num))
-Server-->Client
-(发送用户();接受用户(用户Num);类型(9);消息内容(好友请求from请求用户Num))
+9:好友请求
+{
+    "send": "u123",
+    "receive": "u234",
+    "type": 9,
+    "info": "好友请求"
+}
 
-回应过程
-Client-->Server
-(发送用户(用户Num);接受用户();类型(10);消息内容(通过/不通过))
-Server-->Client
-(发送用户();接受用户(用户Num);类型(10);消息内容(通过/不通过))
+10：好友请求回应
+{
+    "send": "u234",
+    "receive": "u123",
+    "type": 10,
+    "info": True / False
+}
 ```
 
 
@@ -119,10 +179,27 @@ Server-->Client
 #### 修改个人信息
 
 ```
-Client-->Server
-(发送用户(用户Num);接受用户();类型(11);消息内容(修改过后的用户信息))
-Server-->Client
-(发送用户();接受用户(用户Num);类型(11);消息内容(更新用户信息内容))
+11：修改个人信息
+{
+    "send": "u234",
+    "receive": "server",
+    "type": 11,
+    "info": {
+        //0：修改密码；1：修改用户名
+        "PU": 0 / 1
+        "NewInf": "123321"
+    }
+}
+16：修改个人信息结果返回
+{
+    "send": "server",
+    "receive": "u234",
+    "type": 16,
+    "info": {
+        "user_id": "u234"
+        "NewInf": True / False
+    }
+}
 ```
 
 
