@@ -2,6 +2,7 @@ import os.path
 import socket
 import json
 import struct
+from datetime import datetime
 from queue import Queue
 from time import sleep
 import Contact
@@ -120,6 +121,7 @@ def send_file(file_path, send_socket):
                     data_str = fp.read(rcv_size)
                     sent_size += rcv_size
                 send_socket.send(data_str)
+                print(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-5])
             fp.close()
         sleep(1)
 
@@ -142,6 +144,7 @@ def send_file_procedure(user_num, rcv_num, file_path, is_pic):
     temp_dict['info'] = 'complete'
     data_str = json.dumps(temp_dict, ensure_ascii=False)
     file_socket.send(data_str.encode('utf-8'))
+    print(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-5])
 
 
 # 好友请求消息

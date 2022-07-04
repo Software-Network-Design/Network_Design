@@ -608,7 +608,7 @@ def changeInformation():
     labelCi2 = tkinter.Label(ciRoot, text="请修改您的密码:")
     newPassword = tkinter.StringVar()
     labelCi2.place(x=20,y=130,height=20,width=200)
-    entryCi2 = tkinter.Entry(ciRoot, width=220, textvariable=newPassword)
+    entryCi2 = tkinter.Entry(ciRoot, width=220, textvariable=newPassword, show='*')
     entryCi2.place(x=60,y=150,height=30,width=220)
     btnci1 = tkinter.Button(ciRoot, text="修改用户名", command=changeName)
     btnci1.place(x=300, y=72, height=25, width=75)
@@ -691,7 +691,12 @@ def recv():
             accept = friendRequestRecieve(friend_request_from)
             if accept:
                 users[friend_request_from].is_friend = True
+            showList(users)
             cn.friend_response(uID, accept, friend_request_from)
+        # 好友申请回应
+        elif package_type == 10:
+            users[rcv_data['send']].friend = True
+            showList(users)
         # 个人信息修改
         elif package_type == 15:
             changeSuccess()
@@ -827,7 +832,7 @@ entryUser.place(x=145, y=95, width=150, height=30)
 
 labelPassword = tkinter.Label(loginRoot, text="密码:")    # 密码标签
 labelPassword.place(x=98, y=140, width=50, height=20)
-entryPassword = tkinter.Entry(loginRoot, width=120, textvariable=password)
+entryPassword = tkinter.Entry(loginRoot, width=120, textvariable=password, show='*')
 entryPassword.place(x=144, y=135, width=150, height=30)
 
 """#服务器IP标签
