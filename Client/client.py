@@ -27,7 +27,7 @@ ii = 0  # 用于判断是开还是关闭列表框
 users = {}  # 在线用户列表
 chat = '000000'  # 聊天对象id, 默认为群聊
 f_s = 1  # 代表朋友和陌生人之间的分隔位置
-group_message_queue = Queue() #群聊信息
+group_message_queue = Queue() # 群聊信息
 group_pic_list = []
 new_message = {}
 
@@ -103,7 +103,8 @@ def showPopoutMenu(w, menu):
 # 发送表情
 def mark(exp):  # 参数是发的表情图标记, 发送后将按钮销毁
     global ee
-    mes = exp + ':;' + user + ':;' + chat
+    # mes = exp + ':;' + user + ':;' + chat
+    a.set(exp)
     # s.send(mes.encode())#####
     b1.destroy()
     b2.destroy()
@@ -114,19 +115,19 @@ def mark(exp):  # 参数是发的表情图标记, 发送后将按钮销毁
 
 # 四个对应的函数
 def bb1():
-    mark('aa**')
+    mark('/zm')
 
 
 def bb2():
-    mark('bb**')
+    mark('/wl')
 
 
 def bb3():
-    mark('cc**')
+    mark('/zn')
 
 
 def bb4():
-    mark('dd**')
+    mark('/hj')
 
 
 def sendEmoji_():
@@ -352,15 +353,21 @@ def groupRecieve(sender,content,type):  # sender是正在聊天的人
 
 # 聊天列表移除下线用户
 def removeList(logout_user):
+    print("in func removelist")
     global listboxFriend
     # 重新绘制聊天列表
     listboxFriend.delete(0, tkinter.END)    # 清空列表
     listboxFriend.insert(tkinter.END, '群聊|000000')
-    for key in users.keys():
-        listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
     # 弹窗显示好友下线
-    if users[logout_user].friend == True:
+    if users[logout_user].friend:
+        print("friend offline prompt")
         tkinter.messagebox.showinfo('温馨提示', message='您的好友'+str(users[logout_user].contact_name)+'已下线')
+    del users[logout_user]
+    for key in users.keys():
+        if users[key].friend:
+            listboxFriend.insert(tkinter.END, '[友]'+str(users[key].contact_name)+'|'+str(users[key].contact_num))
+        else:
+            listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
 
 
 # 聊天列表显示新上线用户
@@ -370,7 +377,10 @@ def addList(login_user):
     listboxFriend.delete(0, tkinter.END)     # 清空列表
     listboxFriend.insert(tkinter.END, '群聊|000000')
     for key in users.keys():
-        listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
+        if users[key].friend:
+            listboxFriend.insert(tkinter.END, '[友]'+str(users[key].contact_name)+'|'+str(users[key].contact_num))
+        else:
+            listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
     # 弹窗显示好友上线
     if users[login_user].friend == True:
         tkinter.messagebox.showinfo('温馨提示', message='您的好友'+str(users[login_user].contact_name)+'已上线')
@@ -391,7 +401,10 @@ def showList(users):
     listboxFriend.insert(tkinter.END, '群聊|000000')
     # 插入私聊
     for key in users.keys():
-        listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
+        if users[key].friend:
+            listboxFriend.insert(tkinter.END, '[友]'+str(users[key].contact_name)+'|'+str(users[key].contact_num))
+        else:
+            listboxFriend.insert(tkinter.END, str(users[key].contact_name)+'|'+str(users[key].contact_num))
 
 
 # 发送时贴表情
@@ -525,7 +538,10 @@ def changePage():
         if item['sender'] == uID: #如果这条消息是自己发的
             listbox.insert(tkinter.END, '我'+':\n', 'blue')
             if item['type'] == 'message':
-                listbox.insert(tkinter.END, str(item['content'])+'\n', 'blue')
+                if item['content'] in ['/hj', '/zm', '/wl', '/zn']:
+                    sendEmoji(item['content'])
+                else:
+                    listbox.insert(tkinter.END, str(item['content'])+'\n', 'blue')
             elif item['type'] == 'file':
                 listbox.image_create(tkinter.END, image=file_pic)
                 listbox.insert(tkinter.END, "\n文件地址:"+str(item['content'])+'\n', 'grey')
@@ -539,7 +555,10 @@ def changePage():
         else:
             listbox.insert(tkinter.END, users[item['sender']].contact_name+':\n', 'green')
             if item['type'] == 'message':
-                listbox.insert(tkinter.END,str(item['content'])+'\n', 'green')
+                if item['content'] in ['/hj', '/zm', '/wl', '/zn']:
+                    sendEmoji(item['content'])
+                else:
+                    listbox.insert(tkinter.END,str(item['content'])+'\n', 'green')
             elif item['type'] == 'file':
                 listbox.image_create(tkinter.END, image=file_pic)
                 listbox.insert(tkinter.END, "\n文件地址:"+str(item['content'])+'\n', 'grey')
@@ -590,7 +609,7 @@ def changeInformation():
     labelCi2 = tkinter.Label(ciRoot, text="请修改您的密码:")
     newPassword = tkinter.StringVar()
     labelCi2.place(x=20,y=130,height=20,width=200)
-    entryCi2 = tkinter.Entry(ciRoot, width=220, textvariable=newPassword)
+    entryCi2 = tkinter.Entry(ciRoot, width=220, textvariable=newPassword, show='*')
     entryCi2.place(x=60,y=150,height=30,width=220)
     btnci1 = tkinter.Button(ciRoot, text="修改用户名", command=changeName)
     btnci1.place(x=300, y=72, height=25, width=75)
@@ -647,12 +666,13 @@ def recv():
         # 用户下线
         elif package_type == 5:
             logout_user = rcv_data['send']
+            print(users, "before del")
             try:
-                del users[logout_user]
                 removeList(logout_user)
-                if message["user_id"] in new_message:
-                    del new_message[message['user_id']]
+                if logout_user in new_message:
+                    del new_message[logout_user]
             except Exception as e:
+                print(users, "in exception")
                 print(e)
                 print("logout fault")
         # 用户上线
@@ -672,7 +692,12 @@ def recv():
             accept = friendRequestRecieve(friend_request_from)
             if accept:
                 users[friend_request_from].is_friend = True
+            showList(users)
             cn.friend_response(uID, accept, friend_request_from)
+        # 好友申请回应
+        elif package_type == 10:
+            users[rcv_data['send']].friend = True
+            showList(users)
         # 个人信息修改
         elif package_type == 15:
             changeSuccess()
@@ -808,7 +833,7 @@ entryUser.place(x=145, y=95, width=150, height=30)
 
 labelPassword = tkinter.Label(loginRoot, text="密码:")    # 密码标签
 labelPassword.place(x=98, y=140, width=50, height=20)
-entryPassword = tkinter.Entry(loginRoot, width=120, textvariable=password)
+entryPassword = tkinter.Entry(loginRoot, width=120, textvariable=password, show='*')
 entryPassword.place(x=144, y=135, width=150, height=30)
 
 """#服务器IP标签
@@ -840,7 +865,9 @@ root['width'] = 800
 root.resizable(0, 0)
 
 # 创建在线用户列表
-listboxFriend = tkinter.Listbox(root, height='20', bg='lightgrey', highlightbackground='white',yscrollcommand=True,font=('Times',24))
+listboxFriend = tkinter.Listbox(root, height='20', bg='lightgrey',
+                                highlightbackground='white', yscrollcommand=True,
+                                font=('Times', 16))
 listboxFriend.place(x=0, y=0, width=180, height=550)
 
 # listboxFriend.delete(0, tkinter.END) # 这一段是随便填的，到时候可以直接用showList函数
@@ -863,7 +890,7 @@ entryText.place(x=181, y=405, width=620, height=110)
 
 
 # 创建消息窗口
-listbox = ScrolledText(root, relief="solid", bd=1)
+listbox = ScrolledText(root, relief="solid", bd=1, font=('Times', 20))
 # listbox = Text(root, relief="solid", bd=1)
 listbox.place(x=181, y=0, width=620, height=375)
 #listbox.configure(state='disabled')
@@ -875,31 +902,29 @@ selectFilePath.set('')
 listboxFriend.bind('<ButtonRelease-1>', private)
 
 
-# MacOS
-# p1 = tkinter.PhotoImage(file='media/emoji.png')
-# p2 = tkinter.PhotoImage(file='media/file.png')
-# p3 = tkinter.PhotoImage(file='media/picture.png')
-# p4 = tkinter.PhotoImage(file='media/e1.png')
-# p5 = tkinter.PhotoImage(file='media/e2.png')
-# p6 = tkinter.PhotoImage(file='media/e3.png')
-# p7 = tkinter.PhotoImage(file='media/e4.png')
-# p8 = tkinter.PhotoImage(file='media/filePic.png')
-
-# Windows
-p1 = tkinter.PhotoImage(file=Path('../media/emoji.png'))
-p2 = tkinter.PhotoImage(file=Path('../media/file.png'))
-p3 = tkinter.PhotoImage(file=Path('../media/picture.png'))
-p4 = tkinter.PhotoImage(file=Path('../media/e1.png'))
-p5 = tkinter.PhotoImage(file=Path('../media/e2.png'))
-p6 = tkinter.PhotoImage(file=Path('../media/e3.png'))
-p7 = tkinter.PhotoImage(file=Path('../media/e4.png'))
-p8 = tkinter.PhotoImage(file=Path('../media/filePic.png'))
+if cn.MacOS:
+    p1 = tkinter.PhotoImage(file='media/emoji.png')
+    p2 = tkinter.PhotoImage(file='media/file.png')
+    p3 = tkinter.PhotoImage(file='media/picture.png')
+    p4 = tkinter.PhotoImage(file='media/e1.png')
+    p5 = tkinter.PhotoImage(file='media/e2.png')
+    p6 = tkinter.PhotoImage(file='media/e3.png')
+    p7 = tkinter.PhotoImage(file='media/e4.png')
+    p8 = tkinter.PhotoImage(file='media/filePic.png')
+    file_pic = PhotoImage(file='media/icons8-file-96.png')
+else:
+    p1 = tkinter.PhotoImage(file=Path('../media/emoji.png'))
+    p2 = tkinter.PhotoImage(file=Path('../media/file.png'))
+    p3 = tkinter.PhotoImage(file=Path('../media/picture.png'))
+    p4 = tkinter.PhotoImage(file=Path('../media/e1.png'))
+    p5 = tkinter.PhotoImage(file=Path('../media/e2.png'))
+    p6 = tkinter.PhotoImage(file=Path('../media/e3.png'))
+    p7 = tkinter.PhotoImage(file=Path('../media/e4.png'))
+    p8 = tkinter.PhotoImage(file=Path('../media/filePic.png'))
+    file_pic = PhotoImage(file='../media/icons8-file-96.png')
 dicEmoji = {'aa**': p4, 'bb**': p5, 'cc**': p6, 'dd**': p7}
 ee = 0  # 判断表情面板开关的标志
 
-# 路径问题
-# file_pic = PhotoImage(file='media/icons8-file-96.png')
-file_pic = PhotoImage(file='../media/icons8-file-96.png')
 
 # 创建按钮
 btnEmoji = eBut = tkinter.Button(root,image=p1, command=sendEmoji_)

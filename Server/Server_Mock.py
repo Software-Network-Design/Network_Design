@@ -1,3 +1,4 @@
+from datetime import datetime
 from email import message
 import json
 import socket
@@ -371,7 +372,8 @@ class file_server(threading.Thread):
                 request = conn.recv(1024)
                 if not request:
                     break
-                #print('现在接收的是' + str(request))
+                print(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-5])
+                print('现在接收的是' + str(request))
                 try:
                     request = request.decode('utf-8')
                     request = json.loads(request)
@@ -432,6 +434,7 @@ class file_server(threading.Thread):
                                         send_message['isGroup'] = True
                                         self.save_data(send_message)
                             elif(request['info'] == 'complete'):
+                                print(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-5])
                                 for online_user in users:
                                     if(online_user[1] != send):
                                         receive_user_lock[online_user[1]][0].release()
