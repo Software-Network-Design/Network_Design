@@ -18,8 +18,8 @@ File_PORT = 3600
 Sys_PORT = 3700
 send_2_server = ""
 rcv_size = 1024
-default_file_path = Path("./file_received/")
-default_pic_path = Path("./pic_received/")
+default_file_path = Path("../file_received/")
+default_pic_path = Path("../pic_received/")
 group_message_queue = Queue()
 
 
