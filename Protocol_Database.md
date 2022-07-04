@@ -151,23 +151,53 @@
 
 
 
-#### 发送文件
+#### 单独/群组发送文件
 
 ```
-Client-->Server
-(发送用户(用户Num);接受用户();类型(7);消息内容(目标用户Num))
-Server-->Client
-(发送用户();接受用户(用户Num);类型(7);消息内容(目标用户ip))
+Client->Server
+{
+    "send": "u123",
+    "receive": "u234",  #群发:""
+    "type": 6,
+    "info": "start sending"
+}
+"name|size"
+content size = 1024
 
-(new port)
-Client-->Client
-(发送用户(用户Num);接受用户(用户Num);类型(6);消息内容(开始发送))
-file_name|file_size
-文件传输(每次发送固定大小)
-(发送用户(用户Num);接受用户(用户Num);类型(6);消息内容(发送结束))
+Server->Client(s)
+{
+    "send": "u123",
+    "receive": "u234",  
+    "type": 6,
+    "info": "start sending"
+}
+"name|size"
+content size = 1024
 ```
 
+#### 单独/群组发送图片
 
+```
+Client->Server
+{
+    "send": "u123",
+    "receive": "u234",  #群发:""
+    "type": 12,
+    "info": "start sending"
+}
+"name|size"
+content size = 1024
+
+Server->Client(s)
+{
+    "send": "u123",
+    "receive": "u234",  
+    "type": 12,
+    "info": "start sending"
+}
+"name|size"
+content size = 1024
+```
 
 #### 加好友
 
