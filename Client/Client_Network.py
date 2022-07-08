@@ -76,7 +76,7 @@ def login_procedure(user_id, user_pwd):
 
 # 发送私聊消息
 def send_dm(user_num, rcv_num, chat_message, user_list):
-    global chat_socket
+    global chat_socketrc
     temp_dict = dict()
     temp_dict['send'] = user_num
     temp_dict['receive'] = rcv_num

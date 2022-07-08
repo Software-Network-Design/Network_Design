@@ -1,4 +1,5 @@
 # encoding: utf-8
+from cProfile import label
 import copy
 from hashlib import new
 #from plistlib import UID
@@ -11,6 +12,8 @@ import tkinter.messagebox
 from tkinter.scrolledtext import ScrolledText
 from tkinter import PhotoImage, StringVar, filedialog
 from tkinter import *
+
+from numpy import size
 from Contact import *
 import Client_Network as cn
 from Client_Network import chat_socket, file_socket, rcv_size, file_rcv
@@ -221,12 +224,11 @@ def private(*args):
     global chat
     # 获取点击的索引然后得到内容(用户名)
     indexs = listboxFriend.curselection()
-    print(indexs)
     index = indexs[0]
     if index >= 0:
-        temp = listboxFriend.get(index)
+        temp = listboxFriend.get(index) #选中对象
         chat = temp.split('|')[1]
-        # 修改客户端名称
+        # 在聊天框显示当前聊天对象
         if chat == '000000':  # 群聊id=000000
             root.title(user+'在群聊')
         else:
@@ -425,7 +427,6 @@ def sendEmoji(content):
 # 创建发送
 def sendText(*args):
     # 没有添加的话发送信息时会提示没有聊天对象
-    print(chat)
     """if chat not in users:
         tkinter.messagebox.showerror('温馨提示', message='没有聊天对象!')
         return"""
@@ -804,12 +805,14 @@ ipRoot['width'] = 400
 ipRoot.resizable(0, 0)
 
 IP1 = tkinter.StringVar()
-#IP1.set('192.168.0.165')  # 默认显示的ip和端口
-IP1.set('127.0.0.1')
+IP1.set('192.168.0.165')  # 默认显示的ip和端口
+# IP1.set('127.0.0.1')
+label_ip = tkinter.Label(ipRoot, text="连接到局域网",font=('Times', 20))
+label_ip.place(x=55,y=45,width=300,height=50)
 entry_ip = tkinter.Entry(ipRoot, width=120, textvariable=IP1)
-entry_ip.place(x=145, y=95, width=150, height=30)
+entry_ip.place(x=135, y=95, width=150, height=30)
 btnip = tkinter.Button(ipRoot, text="连接", command=connectS)
-btnip.place(x=198, y=130, width=60, height=25)
+btnip.place(x=175, y=130, width=60, height=25)
 
 ipRoot.mainloop()
 
@@ -826,15 +829,18 @@ user.set('')
 password = tkinter.StringVar()
 password.set('')
 
+labelWelcome = tkinter.Label(loginRoot, text="欢迎来到局域网聊天室！",font=('Times', 20))
+labelWelcome.place(x=55,y=50,width=300,height=50)
+
 labelUser = tkinter.Label(loginRoot, text="用户ID:")  # 用户名标签
-labelUser.place(x=86, y=100, width=50, height=20)
+labelUser.place(x=86, y=120, width=50, height=20)
 entryUser = tkinter.Entry(loginRoot, width=120, textvariable=user)
-entryUser.place(x=145, y=95, width=150, height=30)
+entryUser.place(x=145, y=115, width=150, height=30)
 
 labelPassword = tkinter.Label(loginRoot, text="密码:")    # 密码标签
-labelPassword.place(x=98, y=140, width=50, height=20)
+labelPassword.place(x=98, y=160, width=50, height=20)
 entryPassword = tkinter.Entry(loginRoot, width=120, textvariable=password, show='*')
-entryPassword.place(x=144, y=135, width=150, height=30)
+entryPassword.place(x=144, y=155, width=150, height=30)
 
 """#服务器IP标签
 labelIP = tkinter.Label(loginRoot,text=" IP地址:")
@@ -845,10 +851,10 @@ entryIP.place(x=144, y=175, width=150,height=30)"""
 
 loginRoot.bind('<Return>', login)            # 回车绑定登录功能
 btnLogin = tkinter.Button(loginRoot, text='登录', command=login)
-btnLogin.place(x=132, y=217, width=150, height=30)
+btnLogin.place(x=135, y=210, width=150, height=30)
 
 btnRegister = tkinter.Button(loginRoot, text='注册', command=register)
-btnRegister.place(x=132, y=250, width=150, height=30)
+btnRegister.place(x=135, y=245, width=150, height=30)
 
 # 显示登录窗口
 loginRoot.mainloop()
